@@ -59,7 +59,7 @@ npm install
 
  
 
- Projeyi Çalıştırma Yöntemleri 
+ ***Projeyi Çalıştırma Yöntemleri ***
 
  1. Tek Tıklamayla (Windows kullanıcıları için) 
 
