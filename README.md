@@ -1,6 +1,11 @@
 Kahve Sipariş Sistemi 
 
 Bu proje, bir kahve dükkanının müşterilerinden web üzerinden sipariş almasını sağlayan basit ama işlevsel bir full-stack web uygulamasıdır. 
+<img width="521" height="124" alt="Ekran görüntüsü 2025-07-29 125009" src="https://github.com/user-attachments/assets/8f508f63-5cd5-4ce4-a5b7-258b0d15158f" />
+<img width="493" height="608" alt="Ekran görüntüsü 2025-07-29 124945" src="https://github.com/user-attachments/assets/5bb2a94e-caf4-4c0e-ad7f-d5fe19d1be12" />
+<img width="502" height="609" alt="Ekran görüntüsü 2025-07-29 124914" src="https://github.com/user-attachments/assets/40bd9119-96bd-4fe5-8dbd-57d192001a9d" />
+
+
 
  Özellikler 
 
