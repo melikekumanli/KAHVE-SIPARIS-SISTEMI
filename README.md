@@ -56,58 +56,61 @@ cd kahve-siparis-sistemi
 cd backend 
 npm install 
   
-
  
 
- ***Projeyi Çalıştırma Yöntemleri ***
 
- 1. Tek Tıklamayla (Windows kullanıcıları için) 
+## 🚀 Projeyi Çalıştırma Yöntemleri
 
-calistir.bat dosyasına çift tıklayın 
+### ✅ 1. Tek Tıklamayla (Windows için önerilen)
 
-Bu dosya hem sunucuyu başlatır hem frontend'i otomatik açar (live-server ile). 
+`calistir.bat` dosyasına çift tıklayın.  
+Bu dosya hem backend sunucusunu başlatır hem de frontend arayüzünü tarayıcıda açar.
 
-.bat dosyası içerikleri: 
+**calistir.bat içeriği:**
+```bat
+start cmd /k "cd backend && node server.js"
+start cmd /k "npx live-server frontend"
+```
 
-start cmd /k "cd backend && node server.js" 
-start cmd /k "npx live-server frontend" 
-  
 
- 
+### 💻 2. Manuel Yöntem (Geliştiriciler için)
 
- 2. Manuel Yöntem (Geliştiriciler için) 
+**Backend başlatmak için:**
+```bash
+cd backend
+npm install
+node server.js
+```
 
-Sunucuyu başlat: 
+**Frontend başlatmak için:**
+```bash
+npx live-server frontend
+```
+Alternatif olarak, `frontend/index.html` dosyasını VS Code’da sağ tıklayıp **"Open with Live Server"** ile açabilirsiniz.
 
-cd backend 
-node server.js 
-  
+---
 
-Frontend'i aç: 
+#🔁 3. Otomatik Başlatma (`concurrently` ile)
 
-frontend/index.html dosyasını VS Code'da sağ tıkla → "Open with Live Server" 
+Hem backend hem frontend’i aynı anda başlatmak için:
 
-Ya da terminalde:npx live-server frontend 
-  
+**Kurulum:**
+```bash
+npm install
+```
 
- 
+**Çalıştırma:**
+```bash
+npm run dev
+```
 
- 3. Otomatik Başlatma (concurrently) 
+**package.json > scripts kısmı:**
+```json
+"scripts": {
+  "dev": "concurrently \"cd backend && node server.js\" \"npx live-server frontend\""
+}
+```
 
-Projeyi hem frontend hem backend birlikte çalıştırmak için: 
-
-npm install 
-npm run dev 
-  
-
-package.json içinde: 
-
-"scripts": { 
-  "dev": "concurrently \"cd backend && node server.js\" \"npx live-server frontend\"" 
-} 
-  
-
- 
 
  Proje Dosya Yapısı 
 
@@ -131,3 +134,4 @@ Melike Kumanlı
 Yönetim Bilişim Sistemleri 4.sınıf öğrencisi. 
 
 Bu proje, yazılım geliştirme staj başvurum için hazırlanmıştır.
+
