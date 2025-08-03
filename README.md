@@ -11,32 +11,45 @@ Bu proje, bir kahve dükkanının müşterilerinden web üzerinden sipariş alma
 
 
 
- Özellikler 
+## 🔧 Özellikler
 
-Kullanıcı form ile kahve siparişi verebilir (isim, tür, boyut, not). 
+- Kullanıcı form ile kahve siparişi verebilir (isim, tür, boyut, not).
+- Siparişler JSON formatında backend'e gönderilir ve kaydedilir.
+- Sipariş verildiğinde sadece **son sipariş** kullanıcıya ekranda gösterilir.
+- Basit, şık ve kullanıcı dostu arayüz.
+- Hem teknik hem de teknik olmayan kullanıcılar kolayca çalıştırabilir.
 
-Siparişler JSON formatında backend'e gönderilir ve kaydedilir. 
-
-Sipariş verildiğinde, son sipariş kullanıcıya ekranda gösterilir. 
-
-Basit, şık ve kullanıcı dostu arayüz. 
-
-Hem teknik kullanıcılar hem de teknik olmayan kişiler için çalıştırılabilir. 
+---
 
  
 
- Kullanılan Teknolojiler 
+ 🛠️ Kullanılan Teknolojiler
 
-Frontend: HTML, CSS, JavaScript 
+| Katman      | Teknoloji                |
+|-------------|--------------------------|
+| Frontend    | HTML, CSS, JavaScript    |
+| Backend     | Node.js + Express        |
+| Veri Saklama| `orders.json`            |
+| Yardımcılar | `live-server`, `concurrently` |
+| Kolay Başlatma | `.bat` dosyası (Windows için) |
 
-Backend: Node.js + Express 
+---
 
-Veri Saklama: orders.json 
+## 📁 Proje Klasör Yapısı
 
-Yardımcılar: live-server, concurrently 
-
-Kolay Başlatma: .bat dosyaları (Windows) 
-
+```
+kahve-siparis-sistemi/
+├── backend/
+│   ├── server.js
+│   ├── orders.json
+│   └── package.json
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── calistir.bat
+├── README.md
+```
  
 
  Kurulum 
@@ -111,27 +124,12 @@ npm run dev
 }
 ```
 
-
- Proje Dosya Yapısı 
-
-kahve-siparis-sistemi/ 
-├── backend/ 
-│   ├── server.js 
-│   ├── orders.json 
-│   └── package.json 
-├── frontend/ 
-│   ├── index.html 
-│   ├── style.css 
-│   └── script.js 
-├── calistir.bat 
-├── README.md 
   
 
- Geliştiren 
+## 👤 Geliştiren
 
-Melike Kumanlı 
+**Melike Kumanlı**  
+Yönetim Bilişim Sistemleri 4. sınıf öğrencisi.  
+Bu proje yazılım geliştirme staj başvurusuna özel olarak hazırlanmıştır.
 
-Yönetim Bilişim Sistemleri 4.sınıf öğrencisi. 
-
-Bu proje, yazılım geliştirme staj başvurum için hazırlanmıştır.
 
