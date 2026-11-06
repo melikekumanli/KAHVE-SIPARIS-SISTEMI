@@ -11,18 +11,18 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 ## 🔧 Özellikler
 
 **Müşteri (`/`)**
-- Menüden ürün ve boyut seçme; fiyat ve toplam tutar anında görünür.
-- Ürünler kategoriye göre gruplanır; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
-- Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde durum takibi (Bekliyor → Hazırlanıyor → Hazır → Teslim Edildi), ilerleme çubuğuyla.
-- Telefondan rahat kullanım, girilen ismin hatırlanması, çift gönderim koruması.
+- Kategori sekmeleriyle filtrelenen düzenli bir menü; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
+- Yanda yapışkan "Siparişiniz" paneli: seçilen ürün, boyut, toplam tutar ve tek ana buton. Telefonda ekranın altında toplam ve "Siparişi tamamla" çubuğu görünür.
+- Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde adım göstergesiyle canlı takip (Alındı → Hazırlanıyor → Hazır).
+- Girilen ismin hatırlanması, çift gönderim koruması.
 
 **Personel paneli (`/admin.html`)**
-- Yönetici anahtarıyla giriş; bekleyen / hazırlanan / teslime hazır sipariş sayaçları.
-- **Siparişler:** tek tıkla bir sonraki aşamaya geçirme ("Hazırlamaya başla" → "Hazır" → "Teslim edildi"), geri alma, duruma göre filtreleme, silme. Yeni sipariş gelince **sesli uyarı** ve sekme başlığında bekleyen sayısı: `(3) Personel Paneli · Kafe Adı`.
-- **Arşiv:** teslim edilen siparişler aktif listeden çıkar ve "Arşiv" görünümünde saklanır; panel günlerce çalışsa da hızlı kalır.
+- Yönetici anahtarıyla giriş.
+- **Sipariş panosu:** siparişler Bekleyen / Hazırlanıyor / Teslime hazır sütunlarında akar; tek tıkla bir sonraki aşamaya geçirme ("Hazırlamaya başla" → "Hazır" → "Teslim edildi"), geri alma, silme. Yeni sipariş gelince **sesli uyarı** ve sekme başlığında bekleyen sayısı: `(3) Personel Paneli · Kafe Adı`.
+- **Arşiv:** teslim edilen siparişler panodan çıkar ve "Arşiv" tablosunda saklanır; panel günlerce çalışsa da hızlı kalır.
 - **Fiş:** her sipariş için 80 mm termal yazıcıya uygun fiş yazdırma (kafe adı, sipariş no, ürün, tutar).
 - **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme.
-- **Ayarlar (marka):** kafe adı, slogan ve 4 renk temasından seçim; müşteri sayfasına, sekme başlığına ve fişe yansır.
+- **Ayarlar (marka):** kafe adı, slogan ve 4 renk temasından seçim, canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
 **Güvenlik ve güvenilirlik**
 - Barista anahtarı ilk açılışta rastgele üretilir (tahmin edilebilir varsayılan yok).

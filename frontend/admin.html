@@ -25,25 +25,21 @@
 
   <!-- Giriş -->
   <main id="loginView" class="page narrow">
-    <form id="loginForm" class="card">
-      <h1 class="card-title">Personel girişi</h1>
-      <label class="field">
-        <span class="field-label">Yönetici anahtarı</span>
-        <input type="password" id="tokenInput" autocomplete="off" required />
-      </label>
-      <button type="submit" class="btn btn-primary btn-block">Giriş yap</button>
-      <p class="hint">Anahtar, sunucu başlarken konsolda ve <code>data/admin-token.txt</code> dosyasında yazar.</p>
+    <form id="loginForm" class="panel">
+      <div class="panel-head"><h1 class="panel-title">Personel girişi</h1></div>
+      <div class="panel-body">
+        <label class="field">
+          <span class="field-label">Yönetici anahtarı</span>
+          <input type="password" id="tokenInput" autocomplete="off" required />
+        </label>
+        <button type="submit" class="btn btn-primary btn-block">Giriş yap</button>
+        <p class="hint">Anahtar, sunucu başlarken konsolda ve <code>data/admin-token.txt</code> dosyasında yazar.</p>
+      </div>
     </form>
   </main>
 
   <!-- Panel -->
-  <main id="panel" class="page wide" hidden>
-    <div class="stats">
-      <div class="stat wait"><div class="stat-label">Bekleyen</div><div class="stat-value" id="statWait">0</div></div>
-      <div class="stat prep"><div class="stat-label">Hazırlanıyor</div><div class="stat-value" id="statPrep">0</div></div>
-      <div class="stat ready"><div class="stat-label">Teslime hazır</div><div class="stat-value" id="statReady">0</div></div>
-    </div>
-
+  <main id="panel" class="page" hidden>
     <div class="tabs" role="tablist">
       <button type="button" id="tabOrders" class="tab active" role="tab" aria-selected="true">Siparişler <span id="pendingCount" class="count" hidden></span></button>
       <button type="button" id="tabMenu" class="tab" role="tab" aria-selected="false">Menü</button>
@@ -54,64 +50,115 @@
     <section id="ordersView">
       <div class="toolbar">
         <div class="segmented" role="group" aria-label="Görünüm">
-          <button type="button" id="viewActive" class="active">Aktif</button>
+          <button type="button" id="viewActive" class="active">Aktif siparişler</button>
           <button type="button" id="viewArchive">Arşiv</button>
         </div>
-        <select id="statusFilter" aria-label="Duruma göre filtrele"></select>
+        <span id="summary" class="hint" style="margin:0"></span>
         <label class="inline-check push"><input type="checkbox" id="soundToggle" checked /> Yeni sipariş sesi</label>
       </div>
-      <p id="summary" class="hint"></p>
-      <ul id="adminList" class="order-list"></ul>
+
+      <div id="board" class="board">
+        <section class="board-col wait" aria-label="Bekleyen">
+          <div class="board-head"><h2 class="board-title">Bekleyen</h2><span id="countWait" class="board-count">0</span></div>
+          <ul id="listWait" class="board-list"></ul>
+        </section>
+        <section class="board-col prep" aria-label="Hazırlanıyor">
+          <div class="board-head"><h2 class="board-title">Hazırlanıyor</h2><span id="countPrep" class="board-count">0</span></div>
+          <ul id="listPrep" class="board-list"></ul>
+        </section>
+        <section class="board-col ready" aria-label="Teslime hazır">
+          <div class="board-head"><h2 class="board-title">Teslime hazır</h2><span id="countReady" class="board-count">0</span></div>
+          <ul id="listReady" class="board-list"></ul>
+        </section>
+      </div>
+
+      <div id="archiveView" class="panel" hidden>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>No</th><th>Müşteri</th><th>Ürün</th><th>Tutar</th><th>Zaman</th><th></th></tr>
+            </thead>
+            <tbody id="archiveBody"></tbody>
+          </table>
+        </div>
+        <p id="archiveEmpty" class="empty" hidden>Arşivde sipariş yok.</p>
+      </div>
     </section>
 
     <!-- Menü -->
     <section id="menuView" hidden>
-      <div class="card">
-        <h2 class="card-title">Ürünler</h2>
+      <div class="panel">
+        <div class="panel-head"><h2 class="panel-title">Ürünler</h2></div>
         <div id="itemList"></div>
-
-        <h3 class="section-title">Yeni ürün ekle</h3>
-        <form id="addItemForm" class="fields add">
-          <input type="text" name="name" placeholder="Ürün adı" maxlength="40" required aria-label="Ürün adı" />
-          <input type="text" name="category" placeholder="Kategori" maxlength="30" list="categoryList" value="Kahve" aria-label="Kategori" />
-          <input type="number" name="price" placeholder="Fiyat ₺" min="0" step="1" required aria-label="Fiyat" />
-          <button type="submit" class="btn btn-primary">Ekle</button>
-        </form>
-        <datalist id="categoryList"></datalist>
+        <div class="panel-body" style="border-top:1px solid var(--line)">
+          <div class="eyebrow" style="margin-bottom:10px">Yeni ürün ekle</div>
+          <form id="addItemForm" class="fields add">
+            <input type="text" name="name" placeholder="Ürün adı" maxlength="40" required aria-label="Ürün adı" />
+            <input type="text" name="category" placeholder="Kategori" maxlength="30" list="categoryList" value="Kahve" aria-label="Kategori" />
+            <input type="number" name="price" placeholder="Fiyat ₺" min="0" step="1" required aria-label="Fiyat" />
+            <button type="submit" class="btn btn-primary">Ekle</button>
+          </form>
+          <datalist id="categoryList"></datalist>
+        </div>
       </div>
 
-      <div class="card">
-        <h2 class="card-title">Boyutlar</h2>
-        <p class="hint" style="margin:-8px 0 12px">Boyuta göre eklenen ücret. Örn. Orta +10 ₺. Fiyat = ürün fiyatı + boyut ücreti.</p>
-        <form id="sizesForm">
-          <div id="sizeRows"></div>
-          <div class="row-actions">
-            <button type="button" id="addSizeBtn" class="btn btn-sm">+ Boyut ekle</button>
-            <button type="submit" class="btn btn-primary btn-sm">Boyutları kaydet</button>
-          </div>
-        </form>
+      <div class="panel">
+        <div class="panel-head"><h2 class="panel-title">Boyutlar</h2></div>
+        <div class="panel-body">
+          <p class="hint" style="margin:0 0 12px">Boyuta göre eklenen ücret. Örn. Orta +10 ₺. Fiyat = ürün fiyatı + boyut ücreti.</p>
+          <form id="sizesForm">
+            <div id="sizeRows"></div>
+            <div class="row-actions">
+              <button type="button" id="addSizeBtn" class="btn btn-sm">+ Boyut ekle</button>
+              <button type="submit" class="btn btn-primary btn-sm">Boyutları kaydet</button>
+            </div>
+          </form>
+        </div>
       </div>
     </section>
 
     <!-- Ayarlar -->
     <section id="settingsView" hidden>
-      <form id="settingsForm" class="card">
-        <h2 class="card-title">Kafe bilgileri</h2>
-        <label class="field">
-          <span class="field-label">Kafe adı</span>
-          <input type="text" name="cafeName" maxlength="40" required />
-        </label>
-        <label class="field">
-          <span class="field-label">Slogan (isteğe bağlı)</span>
-          <input type="text" name="tagline" maxlength="80" />
-        </label>
-        <fieldset>
-          <legend>Renk teması</legend>
-          <div id="swatches" class="swatches"></div>
-        </fieldset>
-        <button type="submit" class="btn btn-primary">Kaydet</button>
-        <p class="hint">Kafe adı ve slogan müşteri sayfasında, sekme başlığında ve fişte görünür.</p>
-      </form>
+      <div class="settings-grid">
+        <form id="settingsForm" class="panel">
+          <div class="panel-head"><h2 class="panel-title">Kafe bilgileri</h2></div>
+          <div class="panel-body">
+            <label class="field">
+              <span class="field-label">Kafe adı</span>
+              <input type="text" name="cafeName" maxlength="40" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Slogan (isteğe bağlı)</span>
+              <input type="text" name="tagline" maxlength="80" />
+            </label>
+            <fieldset>
+              <legend>Renk teması</legend>
+              <div id="swatches" class="swatches"></div>
+            </fieldset>
+            <button type="submit" class="btn btn-primary">Değişiklikleri kaydet</button>
+            <p class="hint">Kafe adı ve slogan müşteri sayfasında, sekme başlığında ve fişte görünür.</p>
+          </div>
+        </form>
+
+        <div class="panel preview" aria-label="Önizleme">
+          <div class="app-header">
+            <div class="header-inner">
+              <div class="brand">
+                <span class="brand-mark" id="previewMark">K</span>
+                <div>
+                  <div class="brand-name" id="previewName"></div>
+                  <div class="brand-tagline" id="previewTagline"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="preview-body">
+            <div class="eyebrow">Önizleme</div>
+            <p class="hint">Müşterilerin göreceği üst bar ve renkler bu şekilde görünür.</p>
+            <p style="margin-top:12px"><span class="btn btn-primary btn-sm" style="pointer-events:none">Siparişi tamamla</span></p>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 

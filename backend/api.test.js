@@ -351,7 +351,7 @@ test('numara sütunu olmayan eski veritabanı sorunsuz yükseltilir', () => {
 test('frontend dosyaları aynı sunucudan sunulur', async () => {
   const page = await fetch(`${base}/`);
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /Yeni sipariş/);
+  assert.match(await page.text(), /Sipariş verin/);
   assert.equal((await fetch(`${base}/admin.html`)).status, 200);
 });
 

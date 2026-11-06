@@ -20,48 +20,66 @@
   </header>
 
   <main class="page">
-    <section class="card">
-      <h1 class="card-title">Yeni sipariş</h1>
+    <div class="page-head">
+      <h1 class="page-title">Sipariş verin</h1>
+      <p class="page-sub">Menüden ürününüzü seçin, boyutu belirleyin ve siparişinizi tamamlayın.</p>
+    </div>
 
-      <form id="orderForm">
-        <label class="field">
-          <span class="field-label">İsminiz</span>
-          <input type="text" name="name" maxlength="50" autocomplete="given-name" required />
-        </label>
+    <div class="shop-grid">
+      <!-- Menü -->
+      <section aria-label="Menü">
+        <div id="catTabs" class="cat-tabs" role="tablist" aria-label="Kategoriler"></div>
+        <div id="menuList"><p class="empty">Menü yükleniyor...</p></div>
+      </section>
 
-        <fieldset>
-          <legend>Ürün</legend>
-          <div id="typeOptions"></div>
-        </fieldset>
+      <!-- Sipariş paneli -->
+      <aside class="order-col">
+        <form id="orderForm" class="panel" novalidate>
+          <div class="panel-head"><h2 class="panel-title">Siparişiniz</h2></div>
+          <div class="panel-body">
+            <div id="selection" class="selection"></div>
 
-        <fieldset>
-          <legend>Boyut</legend>
-          <div id="sizeOptions" class="choices"></div>
-        </fieldset>
+            <fieldset>
+              <legend>Boyut</legend>
+              <div id="sizeOptions" class="seg-group"></div>
+            </fieldset>
 
-        <label class="field">
-          <span class="field-label">Not (isteğe bağlı)</span>
-          <textarea name="note" maxlength="200" placeholder="Örn. az şekerli"></textarea>
-        </label>
+            <label class="field">
+              <span class="field-label">Adınız</span>
+              <input type="text" name="name" maxlength="50" autocomplete="given-name" required />
+            </label>
 
-        <div class="summary-row">
-          <span>Toplam</span>
-          <strong id="total">-</strong>
-        </div>
+            <label class="field">
+              <span class="field-label">Not (isteğe bağlı)</span>
+              <textarea name="note" maxlength="200" placeholder="Örn. az şekerli"></textarea>
+            </label>
 
-        <button type="submit" id="submitBtn" class="btn btn-primary btn-block" disabled>Menü yükleniyor...</button>
-        <p id="message" class="message" role="status" aria-live="polite" hidden></p>
-      </form>
-    </section>
+            <div class="total-row">
+              <span>Toplam</span>
+              <strong id="total">-</strong>
+            </div>
 
-    <section class="card">
-      <h2 class="card-title">Siparişlerim</h2>
-      <p id="emptyInfo" class="empty" hidden>Henüz sipariş vermediniz.</p>
-      <ul id="orderList" class="order-list"></ul>
-    </section>
+            <button type="submit" id="submitBtn" class="btn btn-primary btn-block" disabled>Menü yükleniyor...</button>
+            <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+          </div>
+        </form>
+
+        <section class="panel" aria-label="Siparişlerim">
+          <div class="panel-head"><h2 class="panel-title">Siparişlerim</h2></div>
+          <p id="emptyInfo" class="empty" hidden>Henüz sipariş vermediniz.</p>
+          <ul id="orderList" class="my-orders"></ul>
+        </section>
+      </aside>
+    </div>
   </main>
 
   <footer class="app-footer"><a href="admin.html">Personel girişi</a></footer>
+
+  <!-- Dar ekranlarda: seçilen ürün ve toplam -->
+  <div id="mobileBar" class="mobile-bar">
+    <div><small id="barLabel">Seçilen ürün</small><strong id="barTotal">-</strong></div>
+    <a href="#orderForm" class="btn btn-primary">Siparişi tamamla</a>
+  </div>
 
   <script src="brand.js"></script>
   <script src="script.js"></script>

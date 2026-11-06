@@ -2,10 +2,8 @@ const $ = (id) => document.getElementById(id);
 
 const loginView = $("loginView");
 const panel = $("panel");
-const listEl = $("adminList");
 const messageEl = $("message");
 const soundToggle = $("soundToggle");
-const statusFilter = $("statusFilter");
 
 const TOKEN_KEY = "adminToken";
 const POLL_MS = 4000;
@@ -18,14 +16,14 @@ const FLOW = {
   "Hazırlanıyor": { next: "Hazır", label: "Hazır", prev: "Bekliyor" },
   "Hazır": { next: DONE, label: "Teslim edildi", prev: "Hazırlanıyor" },
 };
-const STATUS_CLASS = { "Bekliyor": "status-wait", "Hazırlanıyor": "status-prep", "Hazır": "status-ready", [DONE]: "status-done" };
-const THEME_COLORS = { kahve: "#8b5a3c", zeytin: "#5d6c3a", lacivert: "#2f4f86", bordo: "#8c2f45" };
+const COLUMNS = { "Bekliyor": ["listWait", "countWait"], "Hazırlanıyor": ["listPrep", "countPrep"], "Hazır": ["listReady", "countReady"] };
+const THEME_COLORS = { kahve: "#7a4a2b", zeytin: "#4d6b3a", lacivert: "#27487d", bordo: "#8c2f45" };
 const THEME_NAMES = { kahve: "Kahve", zeytin: "Zeytin", lacivert: "Lacivert", bordo: "Bordo" };
 
 let token = null;
 let menu = { items: [], sizes: [], statuses: [] };
-let orders = [];          // görünümdeki siparişler (aktif ya da arşiv)
-let activeOrders = [];    // aktif siparişlerin tümü (sayaçlar için)
+let activeOrders = [];    // teslim edilmemiş siparişler
+let archiveOrders = [];   // teslim edilenler (arşiv görünümündeyken yüklenir)
 let view = "active";      // "active" | "archive"
 let seenOrderIds = null;  // null: ilk yükleme (ses çalma)
 let pollTimer = null;
@@ -57,8 +55,8 @@ function formatTime(iso) {
 
 function formatDateTime(iso) {
   const d = new Date(iso);
-  const sameDay = d.toDateString() === new Date().toDateString();
-  return sameDay ? formatTime(iso)
+  return d.toDateString() === new Date().toDateString()
+    ? formatTime(iso)
     : `${d.toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" })} ${formatTime(iso)}`;
 }
 
@@ -137,9 +135,9 @@ function logout(message) {
 // ---------- Fiş ----------
 function printReceipt(order) {
   const brand = window.Brand.data || {};
-  const r = $("receipt");
   const line = (left, right, cls = "") =>
     el("div", { className: `line ${cls}` }, el("span", { textContent: left }), el("span", { textContent: right }));
+  const r = $("receipt");
   r.innerHTML = "";
   r.append(
     el("h1", { textContent: brand.cafeName || "" }),
@@ -160,67 +158,75 @@ function printReceipt(order) {
   window.print();
 }
 
-// ---------- Siparişler ----------
-function renderStats() {
-  const count = (status) => activeOrders.filter((o) => o.status === status).length;
-  $("statWait").textContent = count("Bekliyor");
-  $("statPrep").textContent = count("Hazırlanıyor");
-  $("statReady").textContent = count("Hazır");
-
-  const pending = count("Bekliyor");
-  $("pendingCount").textContent = pending;
-  $("pendingCount").hidden = pending === 0;
-  window.Brand.setPending(pending);
+// ---------- Siparişler: pano ----------
+function button(text, className, onClick, title) {
+  const b = el("button", { type: "button", className: `btn btn-sm ${className}`.trim(), textContent: text });
+  if (title) b.title = title;
+  b.addEventListener("click", onClick);
+  return b;
 }
 
-function orderCard(order) {
+function ticket(order) {
   const flow = FLOW[order.status];
-  const actions = el("div", { className: "order-actions" });
-
-  if (view === "active" && flow) {
-    const next = el("button", { type: "button", className: "btn btn-primary btn-sm", textContent: flow.label });
-    next.addEventListener("click", () => changeStatus(order.id, flow.next));
-    actions.appendChild(next);
-    if (flow.prev) {
-      const back = el("button", { type: "button", className: "btn btn-sm", textContent: "Geri al", title: `"${flow.prev}" durumuna döndür` });
-      back.addEventListener("click", () => changeStatus(order.id, flow.prev));
-      actions.appendChild(back);
-    }
+  const actions = el("div", { className: "ticket-actions" });
+  if (flow) {
+    actions.appendChild(button(flow.label, "btn-primary", () => changeStatus(order.id, flow.next)));
+    if (flow.prev) actions.appendChild(button("Geri al", "", () => changeStatus(order.id, flow.prev), `"${flow.prev}" durumuna döndür`));
   }
-  if (view === "archive") {
-    const reopen = el("button", { type: "button", className: "btn btn-sm", textContent: "Geri al", title: "Teslime hazır durumuna döndür" });
-    reopen.addEventListener("click", () => changeStatus(order.id, "Hazır"));
-    actions.appendChild(reopen);
-  }
-  const print = el("button", { type: "button", className: "btn btn-sm", textContent: "Fiş" });
-  print.addEventListener("click", () => printReceipt(order));
-  const del = el("button", { type: "button", className: "btn btn-sm btn-danger", textContent: "Sil" });
-  del.addEventListener("click", () => removeOrder(order));
-  actions.append(print, del);
+  actions.append(
+    button("Fiş", "", () => printReceipt(order)),
+    button("Sil", "btn-danger", () => removeOrder(order))
+  );
 
-  return el("li", { className: "order-card" },
-    el("div", { className: "order-head" },
-      el("span", { className: "order-no", textContent: orderLabel(order) }),
-      el("span", { className: `badge ${STATUS_CLASS[order.status] || "status-wait"}`, textContent: order.status })),
-    el("div", { className: "order-title", textContent: `${order.type} · ${order.size}` }),
-    el("div", { className: "order-meta", textContent: `${order.name} · ${order.price} ₺ · ${formatDateTime(order.createdAt)}` }),
-    ...(order.note ? [el("div", { className: "order-note", textContent: `Not: ${order.note}` })] : []),
+  return el("li", { className: "ticket" },
+    el("div", { className: "ticket-head" },
+      el("span", { className: "ticket-no", textContent: orderLabel(order) }),
+      el("span", { className: "ticket-time", textContent: formatDateTime(order.createdAt) })),
+    el("div", { className: "ticket-item" }, order.type, " ", el("span", { textContent: `· ${order.size}` })),
+    el("div", { className: "ticket-meta", textContent: `${order.name} · ${order.price} ₺` }),
+    ...(order.note ? [el("div", { className: "ticket-note", textContent: `Not: ${order.note}` })] : []),
     actions);
 }
 
-function renderOrders() {
-  const filter = view === "active" ? statusFilter.value : "";
-  const shown = filter ? orders.filter((o) => o.status === filter) : orders;
+function renderBoard() {
+  Object.entries(COLUMNS).forEach(([status, [listId, countId]]) => {
+    // Pano sütununda en eski sipariş en üstte (önce gelen önce hazırlanır)
+    const inColumn = activeOrders.filter((o) => o.status === status).reverse();
+    const list = $(listId);
+    list.innerHTML = "";
+    $(countId).textContent = inColumn.length;
+    if (!inColumn.length) list.appendChild(el("li", { className: "board-empty", textContent: "Sipariş yok" }));
+    inColumn.forEach((o) => list.appendChild(ticket(o)));
+  });
 
-  listEl.innerHTML = "";
-  if (view === "archive") {
-    $("summary").textContent = shown.length
-      ? `Son ${shown.length} teslim edilen sipariş (en fazla ${ARCHIVE_LIMIT} gösterilir)`
-      : "Arşivde sipariş yok.";
-  } else {
-    $("summary").textContent = shown.length ? `${shown.length} aktif sipariş` : "Aktif sipariş yok.";
-  }
-  shown.forEach((order) => listEl.appendChild(orderCard(order)));
+  const pending = activeOrders.filter((o) => o.status === "Bekliyor").length;
+  $("pendingCount").textContent = pending;
+  $("pendingCount").hidden = pending === 0;
+  window.Brand.setPending(pending);
+  $("summary").textContent = `${activeOrders.length} aktif sipariş`;
+}
+
+// ---------- Siparişler: arşiv tablosu ----------
+function renderArchive() {
+  const body = $("archiveBody");
+  body.innerHTML = "";
+  $("archiveEmpty").hidden = archiveOrders.length > 0;
+  $("summary").textContent = archiveOrders.length
+    ? `Son ${archiveOrders.length} teslim edilen sipariş (en fazla ${ARCHIVE_LIMIT})`
+    : "";
+
+  archiveOrders.forEach((o) => {
+    body.appendChild(el("tr", {},
+      el("td", { className: "num-cell", textContent: orderLabel(o) }),
+      el("td", { textContent: o.name }),
+      el("td", { textContent: `${o.type} · ${o.size}` }),
+      el("td", { className: "num", textContent: `${o.price} ₺` }),
+      el("td", { textContent: formatDateTime(o.createdAt) }),
+      el("td", {}, el("div", { className: "actions" },
+        button("Geri al", "", () => changeStatus(o.id, "Hazır"), "Teslime hazır durumuna döndür"),
+        button("Fiş", "", () => printReceipt(o)),
+        button("Sil", "btn-danger", () => removeOrder(o))))));
+  });
 }
 
 async function fetchOrders(query) {
@@ -236,10 +242,12 @@ async function loadOrders() {
     if (seenOrderIds && active.some((o) => !seenOrderIds.has(o.id))) beep();
     seenOrderIds = new Set(active.map((o) => o.id));
     activeOrders = active;
+    renderBoard();
 
-    orders = view === "active" ? active : await fetchOrders(`?status=${encodeURIComponent(DONE)}&limit=${ARCHIVE_LIMIT}`);
-    renderStats();
-    renderOrders();
+    if (view === "archive") {
+      archiveOrders = await fetchOrders(`?status=${encodeURIComponent(DONE)}&limit=${ARCHIVE_LIMIT}`);
+      renderArchive();
+    }
   });
 }
 
@@ -264,12 +272,12 @@ function setView(next) {
   view = next;
   $("viewActive").classList.toggle("active", next === "active");
   $("viewArchive").classList.toggle("active", next === "archive");
-  statusFilter.hidden = next === "archive";
+  $("board").hidden = next !== "active";
+  $("archiveView").hidden = next !== "archive";
   loadOrders();
 }
 $("viewActive").addEventListener("click", () => setView("active"));
 $("viewArchive").addEventListener("click", () => setView("archive"));
-statusFilter.addEventListener("change", renderOrders);
 
 // ---------- Menü yönetimi ----------
 async function loadMenu() {
@@ -295,16 +303,13 @@ function renderItems() {
     price.setAttribute("aria-label", "Fiyat");
     const available = el("input", { type: "checkbox", checked: item.available });
 
-    const save = el("button", { type: "button", className: "btn btn-primary btn-sm", textContent: "Kaydet" });
-    save.addEventListener("click", () =>
-      updateItem(item.id, { name: name.value, category: category.value, price: price.valueAsNumber, available: available.checked }));
-    const del = el("button", { type: "button", className: "btn btn-sm btn-danger", textContent: "Sil" });
-    del.addEventListener("click", () => deleteItem(item));
-
     list.appendChild(el("div", { className: `editor-row${item.available ? "" : " unavailable"}` },
       el("div", { className: "fields" }, name, category, price),
       el("div", { className: "row-actions" },
-        el("label", { className: "inline-check" }, available, " Mevcut"), save, del)));
+        el("label", { className: "inline-check" }, available, " Serviste (mevcut)"),
+        button("Kaydet", "btn-primary", () =>
+          updateItem(item.id, { name: name.value, category: category.value, price: price.valueAsNumber, available: available.checked })),
+        button("Sil", "btn-danger", () => deleteItem(item)))));
   });
 }
 
@@ -345,9 +350,8 @@ function addSizeRow(size = { name: "", extra: 0 }) {
   name.setAttribute("aria-label", "Boyut adı");
   const extra = el("input", { type: "number", value: size.extra, min: 0, step: 1, required: true });
   extra.setAttribute("aria-label", "Ek ücret");
-  const remove = el("button", { type: "button", className: "btn btn-sm btn-danger", textContent: "Kaldır" });
-  const row = el("div", { className: "fields size" }, name, extra, remove);
-  remove.addEventListener("click", () => row.remove());
+  const row = el("div", { className: "fields size" }, name, extra);
+  row.appendChild(button("Kaldır", "btn-danger", () => row.remove()));
   $("sizeRows").appendChild(row);
 }
 
@@ -370,6 +374,15 @@ $("sizesForm").addEventListener("submit", async (e) => {
 });
 
 // ---------- Ayarlar (marka) ----------
+function updatePreview() {
+  const form = $("settingsForm");
+  const name = form.cafeName.value.trim() || "Kafe adı";
+  $("previewName").textContent = name;
+  $("previewTagline").textContent = form.tagline.value.trim();
+  $("previewTagline").hidden = !form.tagline.value.trim();
+  $("previewMark").textContent = name.charAt(0).toLocaleUpperCase("tr-TR");
+}
+
 function renderSettings() {
   const s = window.Brand.data || {};
   const form = $("settingsForm");
@@ -386,7 +399,10 @@ function renderSettings() {
     dot.style.setProperty("--swatch", THEME_COLORS[theme]);
     swatches.appendChild(el("label", { className: "swatch" }, radio, dot, THEME_NAMES[theme]));
   });
+  updatePreview();
 }
+
+$("settingsForm").addEventListener("input", updatePreview);
 
 $("settingsForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -429,10 +445,6 @@ async function showPanel() {
   } catch {
     return showMessage("Sunucuya ulaşılamadı.");
   }
-
-  statusFilter.innerHTML = "";
-  [["", "Tüm aktifler"], ...menu.statuses.filter((s) => s !== DONE).map((s) => [s, s])]
-    .forEach(([value, label]) => statusFilter.appendChild(el("option", { value, textContent: label })));
 
   messageEl.hidden = true;
   loginView.hidden = true;
