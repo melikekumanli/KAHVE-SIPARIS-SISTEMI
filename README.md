@@ -36,6 +36,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - 49 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
 - **Kahve bardağı sepet:** "Sepetiniz" paneli kapaklı, beyaza yakın bir kahve bardağı biçiminde (buhar çıkar, gövde aşağı doğru daralır); bardağın içindeki alan sütlü kahve (latte) renginde, form içeriği bu zemin üzerinde okunaklı kahve tonlarıyla gösterilir. Telefonda ve tablette de bardak biçimini korur.
 - **Damlalı üst bar:** koyu kahve renkli, altında büyük bir dalga ve sarkan damlalar (SVG, ekran genişliğine göre üretilir; damlalar yavaşça uzar, bazılarından damlacık düşer; "hareketi azalt" ayarına uyar). Renk temasıyla birlikte değişir.
+- **Tutarlı bileşen sistemi:** hap biçimli düğmeler (kahve ana düğme, kremsi ikincil, yumuşak kırmızı silme), hap sekmeler ve segmentli kontroller, aç/kapa rozetleri, yuvarlak adet düğmeleri; hepsi damlalı üst bar ve bardakla aynı kahve/krem renklerinde.
 - Tasarım: tek bir tasarım sisteminde (renk değişkenleri, 4 tema) tutarlı düğmeler, kartlar, gölgeler; marka rengine göre yumuşak arka plan ışığı.
 
 ## 🛠️ Kullanılan Teknolojiler

@@ -26,6 +26,12 @@
 
   --accent-rgb: 122, 74, 43;
 
+  /* Kahve/krem yardımcı renkleri: düğme, sekme ve kutularda ortak kullanılır */
+  --cream: #fffaf3;
+  --cream-2: #f6ecde;
+  --coffee-ink: #4a2c18;
+  --coffee-line: rgba(92, 58, 32, 0.28);
+
   /* Koyu üst bar (damlalı) ve altındaki damla alanının yüksekliği */
   --hdr-top: #4d2f1b;
   --hdr-bg: #38200f;
@@ -251,66 +257,74 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.16);
 }
 
-/* ---------- Butonlar ---------- */
+/* ---------- Butonlar ----------
+   Tek bir sistem: hap biçimi (damlalar ve bardakla uyumlu), kahve/krem renkler.
+   .btn (ikincil: krem) · .btn-primary (kahve) · .btn-danger (yumuşak kırmızı) · .btn-sm · .btn-block */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   min-height: 42px;
-  padding: 9px 18px;
+  padding: 9px 22px;
   font: inherit;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: 0.005em;
-  color: var(--text-2);
-  background: linear-gradient(180deg, #ffffff, #f8f9fb);
-  border: 1px solid #d0d5dd;
-  border-radius: var(--radius-sm);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  color: var(--coffee-ink);
+  background: linear-gradient(180deg, #fffdf9, #f7eee2);
+  border: 1px solid var(--coffee-line);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(60, 34, 18, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.06s ease;
 }
 
-.btn:hover { background: linear-gradient(180deg, #ffffff, #f1f3f6); border-color: #b9c1cd; }
-.btn:active { transform: translateY(1px); box-shadow: none; }
+.btn:hover { background: linear-gradient(180deg, #ffffff, #f1e4d3); border-color: rgba(92, 58, 32, 0.5); }
+.btn:active { transform: translateY(1px); box-shadow: inset 0 1px 3px rgba(60, 34, 18, 0.18); }
 .btn:focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.25); }
 
 .btn-primary {
   color: #fff;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0) 55%), var(--accent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 55%), var(--accent);
   border-color: var(--accent-strong);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 4px rgba(40, 20, 8, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 55%), var(--accent-strong);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 55%), var(--accent-strong);
   border-color: var(--accent-strong);
 }
 
-.btn-danger { color: var(--danger); border-color: #f1c9c4; background: #fff; }
-.btn-danger:hover { background: var(--danger-bg); border-color: #e8a8a1; }
+.btn-danger {
+  color: #9f2f22;
+  background: linear-gradient(180deg, #fffafa, #fdeeec);
+  border-color: rgba(180, 35, 24, 0.32);
+}
+
+.btn-danger:hover { background: linear-gradient(180deg, #fff3f1, #fbe0dc); border-color: rgba(180, 35, 24, 0.5); }
 
 .btn-block {
   width: 100%;
   min-height: 52px;
-  padding: 13px 18px;
+  padding: 13px 22px;
   font-size: 16px;
-  border-radius: 12px;
 }
 
-.btn-block.btn-primary { box-shadow: 0 8px 18px -8px rgba(var(--accent-rgb), 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.2); }
+.btn-block.btn-primary { box-shadow: 0 10px 20px -10px rgba(var(--accent-rgb), 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.28); }
 
-.btn-sm { min-height: 36px; padding: 6px 14px; font-size: 13.5px; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+.btn-sm { min-height: 36px; padding: 6px 16px; font-size: 13.5px; }
 
-/* Pasif düğme: soluk marka rengi yerine sade gri */
+/* Pasif düğme: soluk marka rengi yerine sade, krem-gri */
 .btn:disabled,
 .btn-primary:disabled,
 .btn-primary:disabled:hover {
-  color: #98a2b3;
-  background: #eef0f3;
-  border-color: #e4e7ec;
+  color: #a39a8f;
+  background: #efe9e0;
+  border-color: #e3dbd0;
   box-shadow: none;
+  text-shadow: none;
   cursor: not-allowed;
   transform: none;
 }
@@ -672,27 +686,37 @@ label.seg:has(input:focus-visible) { outline: 2px solid var(--accent); outline-o
 .tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--line-strong);
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 22px;
+  padding: 5px;
   overflow-x: auto;
   overflow-y: hidden;
+  background: rgba(255, 250, 243, 0.92);
+  border: 1px solid var(--coffee-line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
 }
 
 .tab {
   flex: none;
-  padding: 10px 16px;
-  margin-bottom: -1px;
+  padding: 8px 20px;
   font: inherit;
-  font-weight: 600;
+  font-weight: 650;
   color: var(--muted);
   background: none;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.tab:hover { color: var(--text); }
-.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover { color: var(--coffee-ink); background: rgba(var(--accent-rgb), 0.09); }
+.tab.active {
+  color: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 55%), var(--accent);
+  box-shadow: 0 4px 10px -3px rgba(var(--accent-rgb), 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
 
 .count {
   display: inline-block;
@@ -712,27 +736,29 @@ label.seg:has(input:focus-visible) { outline: 2px solid var(--accent); outline-o
 
 .segmented {
   display: inline-flex;
-  padding: 3px;
-  background: #e7eaf0;
-  border-radius: var(--radius-sm);
-  box-shadow: inset 0 1px 2px rgba(16, 24, 40, 0.08);
+  padding: 4px;
+  background: #efe4d4;
+  border: 1px solid rgba(92, 58, 32, 0.14);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 2px rgba(60, 34, 18, 0.1);
 }
 
 .segmented button {
-  padding: 6px 16px;
+  padding: 6px 18px;
   font: inherit;
-  font-weight: 600;
+  font-weight: 650;
   color: var(--muted);
   background: none;
   border: 0;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .segmented button.active {
-  color: var(--text);
+  color: var(--coffee-ink);
   background: #fff;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.14);
+  box-shadow: 0 1px 3px rgba(60, 34, 18, 0.2);
 }
 
 .inline-check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); cursor: pointer; }
@@ -793,8 +819,10 @@ label.seg:has(input:focus-visible) { outline: 2px solid var(--accent); outline-o
   border-radius: 6px;
 }
 
-.ticket-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.ticket-actions .btn-primary { flex: 1 1 auto; }
+.ticket-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.ticket-actions .btn-primary { flex: 1 1 100%; }
+
+.ticket-actions .btn:not(.btn-primary) { flex: 1 1 0; min-width: 0; padding-left: 10px; padding-right: 10px; }
 
 /* Arşiv tablosu */
 .table-wrap { overflow-x: auto; }
@@ -1018,11 +1046,23 @@ label.swatch:has(input:focus-visible) { outline: 2px solid var(--accent); outlin
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
 
 .kpi {
-  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px 16px;
   background: #fff;
   border: 1px solid rgba(16, 24, 40, 0.08);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
+}
+
+.kpi::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), rgba(var(--accent-rgb), 0.3));
 }
 
 .kpi-label { font-size: 12.5px; font-weight: 600; color: var(--muted); }
@@ -1036,9 +1076,15 @@ label.swatch:has(input:focus-visible) { outline: 2px solid var(--accent); outlin
 .bar-col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
 .bar-val { height: 18px; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .bar-track { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
-.bar { width: 70%; max-width: 44px; background: var(--accent); border-radius: 4px 4px 0 0; transition: height 0.3s ease; }
+.bar {
+  width: 70%;
+  max-width: 44px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  border-radius: 7px 7px 0 0;
+  transition: height 0.3s ease;
+}
 .bar-label { height: 18px; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
-.bars.hours .bar { width: 80%; max-width: none; background: var(--prep); }
+.bars.hours .bar { width: 80%; max-width: none; background: linear-gradient(180deg, #d4b08a, #b88a5e); }
 
 .rank { display: grid; gap: 14px; }
 .rank-head { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
@@ -1467,4 +1513,149 @@ label.opt.disabled small { color: var(--danger); }
 
 @media (prefers-reduced-motion: reduce) {
   .cup-steam path { animation: none; stroke-dashoffset: 0; opacity: 0.45; }
+}
+
+/* =========================================================
+   Bileşen düzeni ve tutarlılık katmanı
+   ========================================================= */
+
+/* Panel başlıklarına küçük kahve vurgu çubuğu */
+.panel-head .panel-title { display: flex; align-items: center; gap: 10px; }
+.panel-head .panel-title::before {
+  content: "";
+  flex: none;
+  width: 4px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+}
+
+/* Yuvarlak adet düğmeleri */
+.stepper { border-radius: 999px; padding: 2px; border-color: var(--coffee-line); }
+.stepper button { border-radius: 50%; color: var(--coffee-ink); }
+
+/* Kapatma düğmesi yuvarlak */
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  color: var(--coffee-ink);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(92, 58, 32, 0.2);
+  border-radius: 50%;
+}
+
+.icon-btn:hover { background: #fff; }
+
+/* Ürün penceresi: latte tonlu başlık */
+.sheet-head {
+  padding: 18px 20px;
+  background: linear-gradient(180deg, #f9efe1, #f2e2cd);
+  border-bottom: 1px solid rgba(92, 58, 32, 0.2);
+}
+
+.sheet-head .panel-title { font-size: 19px; letter-spacing: -0.01em; }
+.sheet-body { padding: 20px; }
+
+/* Siparişlerim: duruma göre renkli kenar çizgisi */
+.track { border-left: 4px solid var(--line-strong); }
+.track:has(.badge.status-wait) { border-left-color: var(--wait); }
+.track:has(.badge.status-prep) { border-left-color: var(--prep); }
+.track:has(.badge.status-ready) { border-left-color: var(--ready); }
+.track:has(.badge.status-done) { border-left-color: #98a2b3; }
+
+/* Grafikler: yan yana paneller aynı yükseklikte, grafik alanı boşluğu doldurur */
+.report-grid { align-items: stretch; }
+.report-grid > .panel { display: flex; flex-direction: column; }
+.report-grid > .panel > .panel-body { flex: 1; }
+.panel-body:has(> .bars) { display: flex; flex-direction: column; }
+.panel-body > .bars { flex: 1; height: auto; min-height: 200px; }
+
+/* Aç/kapa rozetleri: menü yönetimindeki onay kutuları (Serviste, Süt, Şurup, Mevcut) */
+.editor-row .inline-check,
+.row-options .inline-check,
+.fields.opt .inline-check {
+  position: relative;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 14px 6px 11px;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  user-select: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.editor-row .inline-check input,
+.row-options .inline-check input,
+.fields.opt .inline-check input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.editor-row .inline-check::before,
+.row-options .inline-check::before,
+.fields.opt .inline-check::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #c3cad5;
+  border-radius: 50%;
+  background: #fff;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.editor-row .inline-check:has(input:checked),
+.row-options .inline-check:has(input:checked),
+.fields.opt .inline-check:has(input:checked) {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.editor-row .inline-check:has(input:checked)::before,
+.row-options .inline-check:has(input:checked)::before,
+.fields.opt .inline-check:has(input:checked)::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.editor-row .inline-check:has(input:focus-visible),
+.row-options .inline-check:has(input:focus-visible),
+.fields.opt .inline-check:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.editor-row .row-actions { gap: 8px; justify-content: flex-start; margin: 0; }
+.editor-row .row-actions .inline-check { margin-right: 0; }
+.row-options { gap: 8px; margin-top: 12px; }
+
+@media (min-width: 981px) {
+  .editor-row .row-actions { justify-content: flex-end; flex-wrap: nowrap; }
+}
+
+/* Telefon düzeni */
+@media (max-width: 640px) {
+  .tabs { width: 100%; padding: 4px; }
+  .tab { flex: 1 1 auto; padding: 8px 6px; font-size: 13.5px; text-align: center; white-space: nowrap; }
+  .count { margin-left: 2px; min-width: 18px; padding: 0 5px; font-size: 11.5px; }
+
+  .toolbar .segmented { width: 100%; }
+  .toolbar .segmented button { flex: 1; padding-left: 8px; padding-right: 8px; }
+  .toolbar-right { width: 100%; justify-content: space-between; }
+
+  .app-header .btn-sm { min-height: 34px; padding: 5px 12px; font-size: 13px; }
+
+  .editor-row .row-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .editor-row .row-actions .inline-check { justify-content: flex-start; }
+  .editor-row .row-actions .inline-check:nth-of-type(3) { grid-column: 1 / -1; }
+  .editor-row .row-actions .btn { width: 100%; }
+  .fields.opt { grid-template-columns: 1fr auto auto; }
+  .fields.opt > :first-child { grid-column: 1 / -1; }
+  .row-options { flex-direction: column; align-items: flex-start; }
 }
