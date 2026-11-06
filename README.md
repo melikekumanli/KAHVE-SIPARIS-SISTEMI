@@ -1,6 +1,6 @@
 # ☕ Kahve Sipariş Sistemi
 
-Bir kahve dükkanının müşterilerinden web üzerinden sipariş almasını sağlayan, basit ama işlevsel bir full-stack web uygulaması.
+Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefon ve tabletlerden** sipariş alabildiği, menüsü yönetilebilir sipariş sistemi. İnternet bağlantısı, hosting veya ek yazılım gerekmez.
 
 <img width="502" height="609" alt="Ekran görüntüsü 2025-07-29 124914" src="https://github.com/user-attachments/assets/408bd84e-05a6-47fd-922f-8ae6b4a522c2" />
 
@@ -10,136 +10,128 @@ Bir kahve dükkanının müşterilerinden web üzerinden sipariş almasını sa�
 
 ## 🔧 Özellikler
 
-**Müşteri (`index.html`)**
-- Menüden kahve türü ve boyut seçme; fiyat ve toplam tutar anında görünür.
-- "Siparişlerim" bölümünde kendi siparişlerinin durumunu (Bekliyor → Hazırlanıyor → Hazır → Teslim Edildi) canlı takip etme.
-- Sayfa içi başarı/hata bildirimi, çift gönderim koruması, mobil uyumlu arayüz.
+**Müşteri (`/`)**
+- Menüden ürün ve boyut seçme; fiyat ve toplam tutar anında görünür.
+- Ürünler kategoriye göre gruplanır; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
+- "Siparişlerim" bölümünde siparişin durumunu (Bekliyor → Hazırlanıyor → Hazır → Teslim Edildi) canlı takip etme.
+- Telefondan rahat kullanım, girilen ismin hatırlanması, çift gönderim koruması.
 
-**Barista (`admin.html`)**
+**Barista paneli (`/admin.html`)**
 - Yönetici anahtarıyla giriş.
-- Tüm siparişleri görme, duruma göre filtreleme, durum güncelleme ve silme.
+- **Siparişler:** tüm siparişleri görme, duruma göre filtreleme, durum güncelleme, silme. Yeni sipariş gelince **sesli uyarı** ve sekme başlığında bekleyen sayısı: `(3) Barista Paneli`.
+- **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme.
 
-**Backend**
-- Siparişler SQLite veritabanında saklanır.
-- Sunucu tarafı doğrulama, hata yönetimi, fiyat hesabı (fiyatı istemci belirleyemez).
-- Otomatik API testleri.
+**Güvenlik ve güvenilirlik**
+- Barista anahtarı ilk açılışta rastgele üretilir (tahmin edilebilir varsayılan yok).
+- Hatalı anahtar denemeleri ve aşırı sipariş gönderimi hız sınırıyla engellenir.
+- Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
+- Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
+- 24 otomatik API testi.
 
 ## 🛠️ Kullanılan Teknolojiler
 
-| Katman         | Teknoloji                         |
-|----------------|-----------------------------------|
-| Frontend       | HTML, CSS, vanilla JavaScript     |
-| Backend        | Node.js (>= 22.5) + Express 5 + cors |
-| Veritabanı     | SQLite (Node'un yerleşik `node:sqlite` modülü, ek paket gerekmez) |
-| Test           | Node'un yerleşik test çalıştırıcısı (`node:test`) |
-| Geliştirme     | `live-server`, `concurrently`     |
-| Kolay başlatma | `baslat.bat` (Windows)            |
+| Katman       | Teknoloji                         |
+|--------------|-----------------------------------|
+| Frontend     | HTML, CSS, vanilla JavaScript     |
+| Backend      | Node.js (>= 22.5) + Express 5     |
+| Veritabanı   | SQLite (Node'un yerleşik `node:sqlite` modülü) |
+| Test         | Node'un yerleşik test çalıştırıcısı (`node:test`) |
+
+Sunucu hem API'yi hem de frontend dosyalarını sunar: tek program, tek port, ek araç yok.
+
+## 🚀 Kurulum ve Çalıştırma
+
+**Gereksinim:** [Node.js](https://nodejs.org) 22.5 veya üstü.
+
+```bash
+git clone https://github.com/melikekumanli/KAHVE-SIPARIS-SISTEMI.git
+cd KAHVE-SIPARIS-SISTEMI
+npm install
+npm start
+```
+
+**Windows'ta tek tıkla:** `baslat.bat` dosyasına çift tıklayın (ilk seferde paketleri kurar, tarayıcıyı açar).
+
+Sunucu açılınca konsolda şuna benzer bir çıktı görürsünüz:
+
+```
+  Bu bilgisayardan : http://localhost:3000
+  Ağdaki cihazlar  : http://192.168.1.20:3000
+  Barista paneli   : /admin.html
+  Barista anahtarı : 9c6ab2bbbc72
+```
+
+- **Müşteriler** telefondan "Ağdaki cihazlar" adresini açar (aynı Wi-Fi'da olmalıdır). Kolaylık için bu adresi QR koda çevirip masalara koyabilirsiniz.
+- **Barista** aynı adrese `/admin.html` ekleyerek girer ve konsoldaki anahtarı yazar. Anahtar `data/admin-token.txt` dosyasında da saklanır.
+
+> **Windows Güvenlik Duvarı:** İlk çalıştırmada Windows "Node.js'in ağ erişimine izin verilsin mi?" diye sorar. Telefonların bağlanabilmesi için **Özel ağlar**'a izin verin.
+
+**Testleri çalıştırmak için:** `npm test`
 
 ## 📁 Proje Yapısı
 
 ```
 KAHVE-SIPARIS-SISTEMI/
 ├── backend/
-│   ├── server.js        # Sunucuyu başlatır (port, CORS, yönetici anahtarı)
-│   ├── app.js           # Express uygulaması: uç noktalar ve doğrulama
-│   ├── db.js            # SQLite bağlantısı ve tablo
-│   ├── menu.js          # Menü, fiyatlar ve sipariş durumları
-│   ├── api.test.js      # API testleri
-│   └── orders.db        # Veritabanı dosyası (otomatik oluşur, git'e girmez)
+│   ├── server.js        # Sunucuyu başlatır (port, ağ adresleri, barista anahtarı)
+│   ├── app.js           # Express uygulaması: tüm uç noktalar
+│   ├── db.js            # SQLite bağlantısı, tablolar, varsayılan menü
+│   ├── menu.js          # Menü işlemleri ve doğrulama
+│   ├── rateLimiter.js   # Hız sınırlayıcı
+│   └── api.test.js      # API testleri
 ├── frontend/
 │   ├── index.html, script.js   # Müşteri sayfası
 │   ├── admin.html, admin.js    # Barista paneli
-│   ├── config.js               # Backend adresi
 │   └── style.css
+├── data/                # Veritabanı ve barista anahtarı (otomatik oluşur, git'e girmez)
 ├── baslat.bat           # Tek tıkla başlatma (Windows)
-├── package.json         # Bağımlılıklar ve scriptler
-└── README.md
+└── package.json
 ```
 
-## 🚀 Kurulum ve Çalıştırma
+## 💾 Veri ve Yedekleme
 
-**Gereksinim:** [Node.js](https://nodejs.org) yüklü olmalı.
-
-```bash
-# 1. Projeyi indir
-git clone https://github.com/melikekumanli/KAHVE-SIPARIS-SISTEMI.git
-cd KAHVE-SIPARIS-SISTEMI
-
-# 2. Paketleri kur (sadece ilk seferde, kök klasörde)
-npm install
-
-# 3. Backend ve frontend'i birlikte başlat
-npm start
-```
-
-| Servis   | Adres                   |
-|----------|-------------------------|
-| Frontend | http://localhost:5500   |
-| Backend  | http://localhost:3000   |
-
-**Windows'ta tek tıkla:** `npm install` yapıldıktan sonra `baslat.bat` dosyasına çift tıklayın.
-
-**Ayrı ayrı başlatmak için:**
-```bash
-npm run server   # sadece backend (port 3000)
-npm run client   # sadece frontend (port 5500)
-```
-
-**Testleri çalıştırmak için:**
-```bash
-npm test
-```
-
-**Barista paneli:** http://localhost:5500/admin.html. Geliştirme ortamında varsayılan anahtar `barista`'dır (aşağıdaki "Yapılandırma" bölümüne bakın).
+Tüm veri (siparişler ve menü) `data/orders.db` dosyasındadır. **Yedeklemek için sunucu kapalıyken bu klasörü kopyalamanız yeterlidir.** Yeni bir bilgisayara taşırken de `data/` klasörünü kopyalayın.
 
 ## 🔌 API
 
-| Metot  | Adres                        | Erişim  | Açıklama |
-|--------|------------------------------|---------|----------|
-| GET    | `/api/menu`                  | Herkes  | Menü, fiyatlar ve durum listesi |
-| POST   | `/api/orders`                | Herkes  | Yeni sipariş oluşturur |
-| GET    | `/api/orders/:id`            | Herkes  | Tek siparişin durumu (id tahmin edilemez bir UUID'dir) |
-| GET    | `/api/orders?status=Hazır`   | Barista | Tüm siparişler (isteğe bağlı durum filtresi) |
-| PATCH  | `/api/orders/:id/status`     | Barista | Sipariş durumunu günceller |
-| DELETE | `/api/orders/:id`            | Barista | Siparişi siler |
+| Metot  | Adres                       | Erişim  | Açıklama |
+|--------|-----------------------------|---------|----------|
+| GET    | `/api/menu`                 | Herkes  | Ürünler, boyutlar, durum listesi |
+| POST   | `/api/orders`               | Herkes  | Yeni sipariş |
+| GET    | `/api/orders/:id`           | Herkes  | Tek siparişin durumu (id tahmin edilemez bir UUID'dir) |
+| GET    | `/api/orders?status=Hazır`  | Barista | Tüm siparişler (isteğe bağlı durum filtresi) |
+| PATCH  | `/api/orders/:id/status`    | Barista | Sipariş durumunu günceller |
+| DELETE | `/api/orders/:id`           | Barista | Siparişi siler |
+| POST   | `/api/menu/items`           | Barista | Ürün ekler |
+| PATCH  | `/api/menu/items/:id`       | Barista | Ürünü günceller (ad, kategori, fiyat, `available`) |
+| DELETE | `/api/menu/items/:id`       | Barista | Ürünü siler |
+| PUT    | `/api/menu/sizes`           | Barista | Boyut listesini değiştirir |
 
-Barista uçları `x-admin-token` başlığı ister; yanlışsa `401` döner.
+Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla hatalı denemede `429` döner.
 
-**POST gövdesi:**
-```json
-{ "name": "Melike", "type": "Latte", "size": "Orta", "note": "karamelli" }
-```
+**Sipariş gövdesi:** `{ "name": "Melike", "type": "Latte", "size": "Orta", "note": "karamelli" }`
+`type` ve `size` menüde var olmalıdır; tükenmiş ürün sipariş edilemez. Hatalarda `400` ve `{ "errors": ["..."] }` döner.
 
-**Kurallar:**
-- `name`: zorunlu, en fazla 50 karakter
-- `type`: `Türk Kahvesi`, `Latte` veya `Espresso`
-- `size`: `Küçük`, `Orta` veya `Büyük`
-- `note`: opsiyonel, en fazla 200 karakter
-- Fiyat ve durum istemciden alınmaz: fiyat sunucuda hesaplanır, yeni sipariş her zaman `Bekliyor` ile başlar.
+## ⚙️ Yapılandırma (isteğe bağlı)
 
-**Başarılı yanıt (`201`):** kaydedilen sipariş `id`, `price`, `status`, `createdAt`, `updatedAt` alanlarıyla döner.
-**Hatalı istek (`400`):** `{ "errors": ["İsim zorunludur."] }` gibi bir hata listesi döner.
+| Ortam değişkeni  | Varsayılan            | Açıklama |
+|------------------|-----------------------|----------|
+| `PORT`           | `3000`                | Sunucu portu |
+| `ADMIN_TOKEN`    | otomatik üretilir     | Barista anahtarını kendiniz belirlemek için |
+| `DB_PATH`        | `data/orders.db`      | Veritabanı dosyasının yolu |
+| `ALLOWED_ORIGIN` | (yok)                 | Frontend'i başka bir adresten sunacaksanız CORS izni (virgülle ayrılır) |
 
-## ⚙️ Yapılandırma
-
-| Ortam değişkeni  | Varsayılan | Açıklama |
-|------------------|------------|----------|
-| `PORT`           | `3000` | Backend portu |
-| `ALLOWED_ORIGIN` | `http://localhost:5500`, `http://127.0.0.1:5500` | CORS ile izin verilen frontend adresleri (virgülle ayrılır) |
-| `ADMIN_TOKEN`    | `barista` (sadece geliştirmede) | Barista anahtarı. `NODE_ENV=production` iken ayarlanmazsa sunucu başlamaz |
-| `DB_PATH`        | `backend/orders.db` | SQLite dosyasının yolu |
-
-Canlıya alırken `frontend/config.js` içindeki `senin-canli-api-adresin.com` yer tutucusunu gerçek API adresiyle değiştirin; backend'i `ALLOWED_ORIGIN` ve güçlü bir `ADMIN_TOKEN` ile başlatın.
+Örnek (PowerShell): `$env:PORT=8080; npm start`
 
 ## ⚠️ Bilinen Sınırlamalar
 
-- Yönetici girişi tek bir paylaşılan anahtara dayanır; kullanıcı hesabı ve oturum yönetimi yoktur.
-- Müşteri siparişlerini tarayıcısında (localStorage) hatırlar; başka cihazdan görünmez.
-- Durum takibi 5 saniyelik yoklama (polling) ile yapılır, anlık bildirim (WebSocket) yoktur.
+- Tek paylaşılan barista anahtarı vardır; kullanıcı hesabı ve oturum yönetimi yoktur. **Sunucuyu internete açmayın**, yerel ağ için tasarlanmıştır (trafik şifrelenmez, HTTPS yoktur).
+- Müşteri siparişlerini tarayıcısında hatırlar; başka cihazdan görünmez.
+- Durum takibi ve yeni sipariş bildirimi birkaç saniyelik yoklama ile yapılır (anlık değildir).
+- Ödeme, masa numarası ve raporlama yoktur.
 - `node:sqlite` Node'da henüz deneysel olarak işaretlidir.
 
 ## 👤 Geliştiren
 
 **Melike Kumanlı**
 Yönetim Bilişim Sistemleri 4. sınıf öğrencisi.
-Bu proje yazılım geliştirme staj başvurusuna özel olarak hazırlanmıştır.
