@@ -18,7 +18,7 @@ body {
   max-width: 500px;
 }
 
-/* Başlık stil + emoji */
+/* Başlık stil */
 h1 {
   text-align: center;
   color: #5c4033;
@@ -77,4 +77,72 @@ button {
 button:hover {
   background-color: #A67B5B; /* Latte */
   transform: scale(1.03);
+}
+
+button:disabled {
+  background-color: #c9b4a1;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Boyut seçimi (fieldset) */
+fieldset {
+  border: none;
+  margin: 15px 0 0;
+  padding: 0;
+}
+
+legend {
+  padding: 0;
+  font-weight: bold;
+  color: #444;
+}
+
+label.radio {
+  display: inline-block;
+  margin-right: 18px;
+  font-weight: normal;
+}
+
+/* Bildirim kutusu */
+.message {
+  margin: 15px 0 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.message.success {
+  background: #e6f4ea;
+  color: #1e6b34;
+}
+
+.message.error {
+  background: #fdecea;
+  color: #a12622;
+}
+
+/* Sipariş listesi */
+#orderList {
+  padding-left: 20px;
+}
+
+#orderList li {
+  margin-bottom: 8px;
+  color: #444;
+}
+
+.empty-info {
+  color: #888;
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 16px;
+  }
+
+  .container {
+    padding: 20px;
+  }
 }

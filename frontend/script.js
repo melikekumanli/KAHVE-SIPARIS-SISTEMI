@@ -1,42 +1,83 @@
-document.getElementById('orderForm').addEventListener('submit', async function (e) {
+// Ortama göre backend URL'si
+const backendURL = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+  ? "http://localhost:3000"
+  : "https://senin-canli-api-adresin.com";
+
+const form = document.getElementById("orderForm");
+const submitBtn = document.getElementById("submitBtn");
+const messageEl = document.getElementById("message");
+const listEl = document.getElementById("orderList");
+const emptyInfoEl = document.getElementById("emptyInfo");
+
+let messageTimer;
+function showMessage(text, type) {
+  clearTimeout(messageTimer);
+  messageEl.textContent = text;
+  messageEl.className = `message ${type}`;
+  messageEl.hidden = false;
+  messageTimer = setTimeout(() => { messageEl.hidden = true; }, 5000);
+}
+
+function renderOrders(orders) {
+  listEl.innerHTML = "";
+  emptyInfoEl.hidden = orders.length > 0;
+
+  // En yeni sipariş en üstte
+  [...orders].reverse().forEach((order) => {
+    const li = document.createElement("li");
+    li.textContent =
+      `${order.name} - ${order.type} (${order.size})` +
+      (order.note ? ` | Not: ${order.note}` : "");
+    listEl.appendChild(li);
+  });
+}
+
+async function loadOrders() {
+  try {
+    const response = await fetch(`${backendURL}/api/orders`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    renderOrders(await response.json());
+  } catch (error) {
+    console.error("Siparişler yüklenemedi:", error);
+    showMessage("Siparişler yüklenemedi. Sunucu çalışıyor mu?", "error");
+  }
+}
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (submitBtn.disabled) return; // çift gönderimi engelle
 
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData.entries());
+  const data = Object.fromEntries(new FormData(form).entries());
 
-  // Ortama göre backend URL'si
-  const backendURL = ["localhost", "127.0.0.1"].includes(window.location.hostname)
-    ? "http://localhost:3000"
-    : "https://senin-canli-api-adresin.com";
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Gönderiliyor...";
 
   try {
     const response = await fetch(`${backendURL}/api/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
 
     if (response.ok) {
-      alert("Sipariş gönderildi!");
-      e.target.reset();
-      displaySingleOrder(data); // sadece o anki siparişi göster
+      form.reset();
+      showMessage("Siparişin alındı, teşekkürler!", "success");
+      await loadOrders();
     } else {
-      alert("Sunucu hatası oluştu.");
+      // Sunucu doğrulama hatalarını { errors: [...] } olarak döner
+      const body = await response.json().catch(() => ({}));
+      showMessage(
+        (body.errors && body.errors.join(" ")) || "Sunucu hatası oluştu.",
+        "error"
+      );
     }
   } catch (error) {
     console.error("İstek hatası:", error);
-    alert("Bağlantı kurulamadı.");
+    showMessage("Bağlantı kurulamadı.", "error");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Gönder";
   }
 });
 
-// Sadece son siparişi gösteren fonksiyon
-function displaySingleOrder(order) {
-  const listElement = document.getElementById("orderList");
-  listElement.innerHTML = ""; // Önceki siparişleri temizle
-
-  const li = document.createElement("li");
-  li.textContent = `${order.name} - ${order.type} (${order.size})${order.note ? ' | Not: ' + order.note : ''}`;
-  listElement.appendChild(li);
-}
+loadOrders();

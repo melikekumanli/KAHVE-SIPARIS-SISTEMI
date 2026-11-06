@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Kahve Sipariş Formu</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,7 +12,7 @@
 
     <form id="orderForm">
       <label>İsim:
-        <input type="text" name="name" required />
+        <input type="text" name="name" maxlength="50" required />
       </label>
 
       <label>Kahve Türü:
@@ -22,20 +23,24 @@
         </select>
       </label>
 
-      <label>Boyut:</label>
-      <label><input type="radio" name="size" value="Küçük" required /> Küçük</label>
-      <label><input type="radio" name="size" value="Orta" /> Orta</label>
-      <label><input type="radio" name="size" value="Büyük" /> Büyük</label>
+      <fieldset>
+        <legend>Boyut:</legend>
+        <label class="radio"><input type="radio" name="size" value="Küçük" required /> Küçük</label>
+        <label class="radio"><input type="radio" name="size" value="Orta" /> Orta</label>
+        <label class="radio"><input type="radio" name="size" value="Büyük" /> Büyük</label>
+      </fieldset>
 
       <label>Not:
-        <textarea name="note" placeholder="(Opsiyonel)"></textarea>
+        <textarea name="note" maxlength="200" placeholder="(Opsiyonel)"></textarea>
       </label>
 
-      <button type="submit">Gönder</button>
+      <button type="submit" id="submitBtn">Gönder</button>
+      <p id="message" class="message" role="status" aria-live="polite" hidden></p>
     </form>
 
     <hr>
     <h2>Verilen Siparişler</h2>
+    <p id="emptyInfo" class="empty-info" hidden>Henüz sipariş yok.</p>
     <ul id="orderList"></ul>
   </div>
 
