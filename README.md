@@ -49,7 +49,7 @@ KAHVE-SIPARIS-SISTEMI/
 
 ```bash
 # 1. Projeyi indir
-git clone https://github.com/<kullanici-adi>/KAHVE-SIPARIS-SISTEMI.git
+git clone https://github.com/melikekumanli/KAHVE-SIPARIS-SISTEMI.git
 cd KAHVE-SIPARIS-SISTEMI
 
 # 2. Paketleri kur (sadece ilk seferde, kök klasörde)
