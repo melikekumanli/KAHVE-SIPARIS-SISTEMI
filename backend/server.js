@@ -1,13 +1,14 @@
 const cors = require('cors');
 const express = require('express');
 const fs = require('fs');
+const path = require('path');
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
 app.use(cors());
 
-const FILE_PATH = 'orders.json';
+const FILE_PATH = path.join(__dirname, 'orders.json');
 
 // Yeni sipariş ekleme
 app.post('/api/orders', (req, res) => {
