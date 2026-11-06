@@ -1,3 +1,8 @@
 node_modules/
 .env
 *.log
+
+# SQLite veritabanı
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal

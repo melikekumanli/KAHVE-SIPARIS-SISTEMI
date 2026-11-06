@@ -5,8 +5,9 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node backend/server.js",
-    "client": "live-server frontend --port=5500"
+    "server": "node --disable-warning=ExperimentalWarning backend/server.js",
+    "client": "live-server frontend --port=5500",
+    "test": "node --disable-warning=ExperimentalWarning --test"
   },
   "author": "Melike",
   "license": "ISC",
@@ -17,5 +18,8 @@
   "devDependencies": {
     "concurrently": "^9.2.0",
     "live-server": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=22.5.0"
   }
 }
