@@ -1296,3 +1296,150 @@ label.opt.disabled small { color: var(--danger); }
   .header-drips .drip, .header-drips .fall { animation: none; }
   .header-drips .fall { display: none; }
 }
+
+/* =========================================================
+   Sepet: karton kahve bardağı
+   - Kapak (koyu kahve plastik) + buhar, kraft karton gövde, beyaz etiket (içerik)
+   - Gövde silüeti SVG arka plandır; içerik yüksekliğine göre esner
+   ========================================================= */
+.cup {
+  position: relative;
+  margin-top: 40px; /* buhar için yer */
+  filter: drop-shadow(0 16px 14px rgba(40, 20, 8, 0.26));
+}
+
+/* Kapak */
+.cup-lid {
+  position: relative;
+  z-index: 2;
+  height: 38px;
+  margin: 0 -2.4%;
+}
+
+/* kapağın kenar halkası */
+.cup-lid::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22px;
+  border-radius: 11px 11px 5px 5px;
+  background: linear-gradient(180deg, #5a3722, #2c180c);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* kapağın üst bombesi */
+.cup-lid::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 18px;
+  height: 17px;
+  border-radius: 14px 14px 2px 2px;
+  background: linear-gradient(180deg, #6a432b, #3d2415);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* içme deliği */
+.cup-sip {
+  position: absolute;
+  z-index: 1;
+  right: 20%;
+  bottom: 26px;
+  width: 46px;
+  height: 7px;
+  border-radius: 6px;
+  background: #1a0e06;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7), 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+/* Buhar */
+.cup-steam {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 34px;
+  width: 56px;
+  height: 37px;
+  margin-left: -36px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cup-steam path {
+  fill: none;
+  stroke: rgba(122, 84, 56, 0.42);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-dasharray: 64;
+  stroke-dashoffset: 64;
+  opacity: 0;
+  animation: cup-steam 4.4s ease-in-out infinite;
+}
+
+.cup-steam .s2 { animation-delay: 1.2s; }
+.cup-steam .s3 { animation-delay: 2.4s; }
+
+@keyframes cup-steam {
+  0% { stroke-dashoffset: 64; opacity: 0; transform: translateY(8px); }
+  25% { opacity: 1; }
+  70% { stroke-dashoffset: 0; opacity: 0.85; }
+  100% { stroke-dashoffset: -64; opacity: 0; transform: translateY(-8px); }
+}
+
+/* Gövde */
+.cup-body {
+  position: relative;
+  margin-top: -2px;
+  padding: 16px 8.2% 40px;
+  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%20preserveAspectRatio%3D%22none%22%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%22h%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ad7d55%22%2F%3E%3Cstop%20offset%3D%22.14%22%20stop-color%3D%22%23cda074%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23e0bc8d%22%2F%3E%3Cstop%20offset%3D%22.86%22%20stop-color%3D%22%23c5986a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%239d6f4b%22%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%22v%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%22.26%22%2F%3E%3Cstop%20offset%3D%22.035%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.92%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%22.34%22%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.3%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%0A%3CclipPath%20id%3D%22c%22%3E%3Cpath%20d%3D%22M0%2C0%20L100%2C0%20L94.2%2C98%20Q93.8%2C100%2091%2C100%20L9%2C100%20Q6.2%2C100%205.8%2C98%20Z%22%2F%3E%3C%2FclipPath%3E%0A%3C%2Fdefs%3E%0A%3Cg%20clip-path%3D%22url(%23c)%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22url(%23h)%22%2F%3E%3Crect%20x%3D%2222%22%20width%3D%229%22%20height%3D%22100%22%20fill%3D%22url(%23g)%22%2F%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22url(%23v)%22%2F%3E%3C%2Fg%3E%0A%3C%2Fsvg%3E") center top / 100% 100% no-repeat;
+}
+
+/* "Sepetiniz" başlığı bardağın üstüne basılmış gibi */
+.cup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 14px;
+}
+
+.cup-title {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4a2a16;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.cup-head .pill {
+  color: #f6e8d8;
+  background: #4a2a16;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* Beyaz etiket: formun tüm içeriği burada, okunabilirlik için düz beyaz */
+.cup-label {
+  padding: 18px 16px 16px;
+  background: #fffdfa;
+  border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 3px 10px rgba(58, 34, 20, 0.28), inset 0 0 0 1px rgba(122, 74, 43, 0.14);
+}
+
+.cup-label .cart-empty { padding-top: 0; }
+
+@media (min-width: 981px) {
+  .order-col { top: 52px; } /* yapışkan sütunda buhar kesilmesin */
+}
+
+@media (max-width: 640px) {
+  .cup-body { padding-left: 7%; padding-right: 7%; }
+  .cup-label { padding: 16px 12px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cup-steam path { animation: none; stroke-dashoffset: 0; opacity: 0.45; }
+}

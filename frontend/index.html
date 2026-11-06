@@ -34,12 +34,22 @@
 
       <!-- Sepet ve siparişler -->
       <aside class="order-col">
-        <form id="orderForm" class="panel" novalidate>
-          <div class="panel-head">
-            <h2 class="panel-title">Sepetiniz</h2>
-            <span id="cartCount" class="pill" hidden>0</span>
+        <!-- Sepet: karton kahve bardağı. Kapak + gövde (üstüne basılı başlık) + beyaz etiket (içerik) -->
+        <form id="orderForm" class="cup" novalidate>
+          <div class="cup-lid" aria-hidden="true">
+            <svg class="cup-steam" viewBox="0 0 70 46" focusable="false">
+              <path class="s1" d="M14 44 C6 34 22 28 14 18 C10 13 14 7 14 2"/>
+              <path class="s2" d="M35 44 C27 34 43 28 35 18 C31 13 35 7 35 2"/>
+              <path class="s3" d="M56 44 C48 34 64 28 56 18 C52 13 56 7 56 2"/>
+            </svg>
+            <span class="cup-sip"></span>
           </div>
-          <div class="panel-body">
+          <div class="cup-body">
+            <div class="cup-head">
+              <h2 class="cup-title">Sepetiniz</h2>
+              <span id="cartCount" class="pill" hidden>0</span>
+            </div>
+            <div class="cup-label">
             <p id="cartEmpty" class="cart-empty">Sepetiniz boş. Menüden bir ürün seçerek başlayın.</p>
             <ul id="cartLines" class="cart-lines"></ul>
 
@@ -72,6 +82,7 @@
 
             <button type="submit" id="submitBtn" class="btn btn-primary btn-block" disabled>Menü yükleniyor...</button>
             <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+            </div>
           </div>
         </form>
 

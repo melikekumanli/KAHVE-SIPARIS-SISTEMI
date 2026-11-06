@@ -34,6 +34,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
 - Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
 - 49 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
+- **Karton kahve bardağı sepet:** "Sepetiniz" paneli kapaklı, kraft karton bir kahve bardağı biçiminde (buhar çıkar, gövde aşağı doğru daralır); form içeriği okunabilirlik için bardağın üstündeki beyaz etikette durur. Telefonda ve tablette de bardak biçimini korur.
 - **Damlalı üst bar:** koyu kahve renkli, altında büyük bir dalga ve sarkan damlalar (SVG, ekran genişliğine göre üretilir; damlalar yavaşça uzar, bazılarından damlacık düşer; "hareketi azalt" ayarına uyar). Renk temasıyla birlikte değişir.
 - Tasarım: tek bir tasarım sisteminde (renk değişkenleri, 4 tema) tutarlı düğmeler, kartlar, gölgeler; marka rengine göre yumuşak arka plan ışığı.
 
