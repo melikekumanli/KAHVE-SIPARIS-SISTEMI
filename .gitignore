@@ -2,7 +2,8 @@ node_modules/
 .env
 *.log
 
-# SQLite veritabanı
+# Veritabanı ve barista anahtarı (çalışma verisi)
+data/
 backend/*.db
 backend/*.db-shm
 backend/*.db-wal

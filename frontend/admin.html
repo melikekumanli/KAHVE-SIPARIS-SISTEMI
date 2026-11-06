@@ -14,24 +14,58 @@
       <label>Yönetici anahtarı:
         <input type="password" id="tokenInput" autocomplete="off" required />
       </label>
+      <p class="hint">Anahtar, sunucu başlarken konsolda ve <code>data/admin-token.txt</code> dosyasında yazar.</p>
       <button type="submit">Giriş</button>
     </form>
 
     <section id="panel" hidden>
-      <div class="toolbar">
-        <label for="statusFilter">Duruma göre:</label>
-        <select id="statusFilter"></select>
-        <button type="button" id="logoutBtn" class="secondary">Çıkış</button>
+      <div class="tabs" role="tablist">
+        <button type="button" id="tabOrders" class="tab active" role="tab" aria-selected="true">Siparişler <span id="pendingCount" class="count" hidden></span></button>
+        <button type="button" id="tabMenu" class="tab" role="tab" aria-selected="false">Menü</button>
+        <button type="button" id="logoutBtn" class="secondary small">Çıkış</button>
       </div>
-      <p id="summary" class="empty-info"></p>
-      <ul id="adminList" class="orders"></ul>
+
+      <!-- Siparişler -->
+      <div id="ordersView">
+        <div class="toolbar">
+          <label for="statusFilter">Duruma göre:</label>
+          <select id="statusFilter"></select>
+          <label class="inline-check"><input type="checkbox" id="soundToggle" checked /> 🔔 Yeni sipariş sesi</label>
+        </div>
+        <p id="summary" class="empty-info"></p>
+        <ul id="adminList" class="orders"></ul>
+      </div>
+
+      <!-- Menü yönetimi -->
+      <div id="menuView" hidden>
+        <h2>Ürünler</h2>
+        <ul id="itemList" class="orders"></ul>
+
+        <h3>Yeni ürün ekle</h3>
+        <form id="addItemForm" class="item-form">
+          <input type="text" name="name" placeholder="Ürün adı" maxlength="40" required />
+          <input type="text" name="category" placeholder="Kategori" maxlength="30" list="categoryList" value="Kahve" />
+          <input type="number" name="price" placeholder="Fiyat ₺" min="0" step="1" required />
+          <button type="submit">Ekle</button>
+        </form>
+        <datalist id="categoryList"></datalist>
+
+        <h2>Boyutlar</h2>
+        <p class="hint">Boyuta göre eklenen ücret. Örn. Orta +10 ₺. Fiyat = ürün fiyatı + boyut ücreti.</p>
+        <form id="sizesForm">
+          <div id="sizeRows"></div>
+          <div class="item-actions">
+            <button type="button" id="addSizeBtn" class="secondary small">+ Boyut ekle</button>
+            <button type="submit" class="small">Boyutları kaydet</button>
+          </div>
+        </form>
+      </div>
     </section>
 
     <p id="message" class="message" role="status" aria-live="polite" hidden></p>
     <p class="footer-link"><a href="index.html">← Sipariş sayfası</a></p>
   </div>
 
-  <script src="config.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

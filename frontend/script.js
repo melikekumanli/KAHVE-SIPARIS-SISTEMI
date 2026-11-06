@@ -14,6 +14,8 @@ const POLL_MS = 5000;
 let menu = null;
 let pollTimer = null;
 
+const NAME_KEY = "customerName";
+
 const formatPrice = (n) => `${n} ₺`;
 
 // --- localStorage (kapalıysa sessizce çalışmaya devam eder) ---
@@ -34,6 +36,14 @@ function saveIds(ids) {
   }
 }
 
+function getSavedName() {
+  try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; }
+}
+
+function saveName(name) {
+  try { localStorage.setItem(NAME_KEY, name); } catch { /* depolama kapalı */ }
+}
+
 // --- Bildirim ---
 let messageTimer;
 function showMessage(text, type) {
@@ -45,9 +55,9 @@ function showMessage(text, type) {
 }
 
 // --- Menü ve form ---
-function addChoice(container, group, value, label, price, checked) {
+function addChoice(container, group, value, label, price, { checked = false, disabled = false } = {}) {
   const wrapper = document.createElement("label");
-  wrapper.className = "choice";
+  wrapper.className = "choice" + (disabled ? " disabled" : "");
 
   const input = document.createElement("input");
   input.type = "radio";
@@ -55,6 +65,7 @@ function addChoice(container, group, value, label, price, checked) {
   input.value = value;
   input.required = true;
   input.checked = checked;
+  input.disabled = disabled;
   input.addEventListener("change", updateTotal);
 
   const text = document.createElement("span");
@@ -70,30 +81,52 @@ function addChoice(container, group, value, label, price, checked) {
 function renderMenu() {
   typeOptionsEl.innerHTML = "";
   sizeOptionsEl.innerHTML = "";
-  menu.coffees.forEach((c, i) =>
-    addChoice(typeOptionsEl, "type", c.name, c.name, formatPrice(c.price), i === 0));
-  menu.sizes.forEach((s, i) =>
-    addChoice(sizeOptionsEl, "size", s.name, s.name, s.extra ? `+${formatPrice(s.extra)}` : "", i === 0));
+
+  // Ürünleri kategoriye göre grupla (kategoriler menüdeki ilk görülme sırasıyla)
+  const categories = [...new Set(menu.items.map((i) => i.category))];
+  let firstAvailableChecked = false;
+  categories.forEach((category) => {
+    const title = document.createElement("h3");
+    title.className = "category-title";
+    title.textContent = category;
+    const group = document.createElement("div");
+    group.className = "choices";
+
+    menu.items.filter((i) => i.category === category).forEach((item) => {
+      const checked = item.available && !firstAvailableChecked;
+      if (checked) firstAvailableChecked = true;
+      addChoice(group, "type", item.name, item.name,
+        item.available ? formatPrice(item.price) : "Tükendi",
+        { checked, disabled: !item.available });
+    });
+    typeOptionsEl.append(title, group);
+  });
+
+  menu.sizes.forEach((size, i) =>
+    addChoice(sizeOptionsEl, "size", size.name, size.name,
+      size.extra ? `+${formatPrice(size.extra)}` : "", { checked: i === 0 }));
   updateTotal();
 }
 
 function updateTotal() {
   if (!menu) return;
-  const type = form.elements.type.value;
-  const size = form.elements.size.value;
-  const coffee = menu.coffees.find((c) => c.name === type);
-  const sizeInfo = menu.sizes.find((s) => s.name === size);
-  totalEl.textContent = coffee && sizeInfo ? formatPrice(coffee.price + sizeInfo.extra) : "-";
+  const item = menu.items.find((i) => i.name === form.elements.type.value);
+  const size = menu.sizes.find((s) => s.name === form.elements.size.value);
+  totalEl.textContent = item && size ? formatPrice(item.price + size.extra) : "-";
 }
 
 async function loadMenu() {
   try {
-    const response = await fetch(`${window.API_URL}/api/menu`);
+    const response = await fetch(`/api/menu`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     menu = await response.json();
     renderMenu();
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Sipariş Ver";
+    if (menu.items.some((i) => i.available)) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Sipariş Ver";
+    } else {
+      submitBtn.textContent = "Şu an sipariş alınamıyor";
+    }
   } catch (error) {
     console.error("Menü yüklenemedi:", error);
     submitBtn.textContent = "Sunucuya ulaşılamadı";
@@ -144,7 +177,7 @@ async function loadMyOrders() {
 
   const results = await Promise.allSettled(
     ids.map(async (id) => {
-      const response = await fetch(`${window.API_URL}/api/orders/${encodeURIComponent(id)}`);
+      const response = await fetch(`/api/orders/${encodeURIComponent(id)}`);
       if (response.status === 404) return { id, gone: true };
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
@@ -187,7 +220,7 @@ form.addEventListener("submit", async (e) => {
   submitBtn.textContent = "Gönderiliyor...";
 
   try {
-    const response = await fetch(`${window.API_URL}/api/orders`, {
+    const response = await fetch(`/api/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -196,8 +229,10 @@ form.addEventListener("submit", async (e) => {
     if (response.ok) {
       const { order } = await response.json();
       saveIds([order.id, ...getSavedIds()]);
+      saveName(order.name);
       form.reset();
-      renderMenu(); // reset sonrası varsayılan seçimler ve toplam
+      form.elements.name.value = getSavedName();
+      await loadMenu(); // güncel menü (tükenen ürünler) ve varsayılan seçimler
       showMessage("Siparişin alındı, teşekkürler!", "success");
       await loadMyOrders();
     } else {
@@ -217,5 +252,6 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
+form.elements.name.value = getSavedName();
 loadMenu();
 loadMyOrders();

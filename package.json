@@ -1,12 +1,10 @@
 {
   "name": "kahve-siparis-sistemi",
   "version": "1.0.0",
-  "description": "Basit bir kahve sipariş sistemi (staj teknik değerlendirmesi)",
+  "description": "Kafeler için yerel ağda çalışan kahve sipariş ve menü yönetim sistemi",
   "main": "backend/server.js",
   "scripts": {
-    "start": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "node --disable-warning=ExperimentalWarning backend/server.js",
-    "client": "live-server frontend --port=5500",
+    "start": "node --disable-warning=ExperimentalWarning backend/server.js",
     "test": "node --disable-warning=ExperimentalWarning --test"
   },
   "author": "Melike",
@@ -14,10 +12,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0"
-  },
-  "devDependencies": {
-    "concurrently": "^9.2.0",
-    "live-server": "^1.2.2"
   },
   "engines": {
     "node": ">=22.5.0"

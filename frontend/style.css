@@ -41,6 +41,7 @@ label {
 /* Giriş alanları */
 input[type="text"],
 input[type="password"],
+input[type="number"],
 textarea,
 select {
   font-family: inherit;
@@ -297,4 +298,168 @@ button.danger:hover {
 
 [hidden] {
   display: none !important;
+}
+
+/* ---- Menü: kategori başlıkları, tükenen ürünler ---- */
+.category-title {
+  margin: 14px 0 0;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a6a4f;
+}
+
+label.choice.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+label.choice.disabled small {
+  text-decoration: none;
+  color: #a12622;
+}
+
+/* ---- Barista paneli: sekmeler ve menü yönetimi ---- */
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid #eee;
+}
+
+button.tab {
+  width: auto;
+  margin: 0 0 -2px;
+  padding: 10px 18px;
+  background: none;
+  color: #777;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 2px solid transparent;
+  transform: none;
+}
+
+button.tab:hover {
+  background: #fbf3ea;
+  transform: none;
+}
+
+button.tab.active {
+  color: #5c4033;
+  font-weight: bold;
+  border-bottom-color: #B87D4B;
+}
+
+.tabs .secondary {
+  margin: 0 0 6px auto;
+}
+
+.count {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 12px;
+  text-align: center;
+}
+
+button.small {
+  width: auto;
+  margin-top: 0;
+  padding: 7px 14px;
+  font-size: 14px;
+}
+
+.inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: normal;
+  font-size: 14px;
+}
+
+.toolbar .inline-check {
+  margin-left: auto;
+}
+
+.hint {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #888;
+}
+
+code {
+  background: #f3ece4;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.item-form {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr auto;
+  gap: 8px;
+}
+
+.item-form input {
+  margin-top: 0;
+  min-width: 0;
+}
+
+.size-row {
+  grid-template-columns: 2fr 1fr auto;
+  margin-bottom: 8px;
+}
+
+.size-row button {
+  margin-top: 0;
+}
+
+form.item-form {
+  margin-top: 8px;
+}
+
+form.item-form button {
+  margin-top: 0;
+  width: auto;
+  padding: 10px 18px;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.item-actions .inline-check {
+  margin-right: auto;
+}
+
+ul.orders li.unavailable {
+  background: #f6f1ec;
+}
+
+h2 {
+  margin-top: 28px;
+  color: #5c4033;
+}
+
+@media (max-width: 480px) {
+  .item-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .item-form input:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .size-row {
+    grid-template-columns: 1fr 1fr auto;
+  }
 }
