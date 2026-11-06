@@ -22,11 +22,15 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
   const db = new DatabaseSync(file);
   db.exec(`
     PRAGMA journal_mode = WAL;
+    PRAGMA foreign_keys = ON;
+
+    -- type ve size sütunları eski sürümlerden kalmadır (tek ürünlü sipariş).
+    -- Yeni siparişlerde ürünler order_items tablosunda tutulur; type sadece özet metindir.
     CREATE TABLE IF NOT EXISTS orders (
       id         TEXT PRIMARY KEY,
       name       TEXT NOT NULL,
-      type       TEXT NOT NULL,
-      size       TEXT NOT NULL,
+      type       TEXT NOT NULL DEFAULT '',
+      size       TEXT NOT NULL DEFAULT '',
       note       TEXT NOT NULL DEFAULT '',
       price      INTEGER NOT NULL,
       status     TEXT NOT NULL DEFAULT 'Bekliyor',
@@ -34,6 +38,19 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
       updated_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+    CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
+
+    -- Bir siparişin ürün satırları (sepet). Ad ve birim fiyat kopyası saklanır:
+    -- menüyü değiştirmek eski siparişleri bozmaz.
+    CREATE TABLE IF NOT EXISTS order_items (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      order_id   TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      name       TEXT NOT NULL,
+      size       TEXT NOT NULL,
+      qty        INTEGER NOT NULL,
+      unit_price INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 
     CREATE TABLE IF NOT EXISTS menu_items (
       id        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,9 +72,18 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
     );
   `);
 
-  // Eski veritabanlarına sipariş numarası sütununu ekle
+  // --- Eski veritabanlarını yükselt (migration) ---
   const orderColumns = db.prepare('PRAGMA table_info(orders)').all().map((c) => c.name);
   if (!orderColumns.includes('number')) db.exec('ALTER TABLE orders ADD COLUMN number INTEGER');
+  if (!orderColumns.includes('service')) db.exec("ALTER TABLE orders ADD COLUMN service TEXT NOT NULL DEFAULT ''");
+  if (!orderColumns.includes('table_no')) db.exec('ALTER TABLE orders ADD COLUMN table_no INTEGER');
+
+  // Tek ürünlü eski siparişleri sepet yapısına çevir (ürün satırı olmayanlar için bir satır oluştur)
+  db.exec(`
+    INSERT INTO order_items (order_id, name, size, qty, unit_price)
+    SELECT id, type, size, 1, price FROM orders
+    WHERE id NOT IN (SELECT order_id FROM order_items) AND type != ''
+  `);
 
   if (db.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n === 0) {
     const ins = db.prepare('INSERT INTO menu_items (name, category, price) VALUES (?, ?, ?)');
@@ -68,23 +94,6 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
     DEFAULT_SIZES.forEach(([name, extra], i) => ins.run(name, extra, i));
   }
   return db;
-}
-
-// Veritabanı satırını (snake_case) API formatına (camelCase) çevirir.
-function toOrder(row) {
-  if (!row) return null;
-  return {
-    id: row.id,
-    number: row.number ?? null,
-    name: row.name,
-    type: row.type,
-    size: row.size,
-    note: row.note,
-    price: row.price,
-    status: row.status,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
 }
 
 function toItem(row) {
@@ -98,4 +107,4 @@ function toItem(row) {
   };
 }
 
-module.exports = { openDb, toOrder, toItem, DATA_DIR };
+module.exports = { openDb, toItem, DATA_DIR };

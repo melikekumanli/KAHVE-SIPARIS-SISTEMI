@@ -22,7 +22,7 @@
   <main class="page">
     <div class="page-head">
       <h1 class="page-title">Sipariş verin</h1>
-      <p class="page-sub">Menüden ürününüzü seçin, boyutu belirleyin ve siparişinizi tamamlayın.</p>
+      <p class="page-sub">Menüden ürünlerinizi sepete ekleyin, masanızı seçin ve siparişinizi tamamlayın.</p>
     </div>
 
     <div class="shop-grid">
@@ -32,16 +32,27 @@
         <div id="menuList"><p class="empty">Menü yükleniyor...</p></div>
       </section>
 
-      <!-- Sipariş paneli -->
+      <!-- Sepet ve siparişler -->
       <aside class="order-col">
         <form id="orderForm" class="panel" novalidate>
-          <div class="panel-head"><h2 class="panel-title">Siparişiniz</h2></div>
+          <div class="panel-head">
+            <h2 class="panel-title">Sepetiniz</h2>
+            <span id="cartCount" class="pill" hidden>0</span>
+          </div>
           <div class="panel-body">
-            <div id="selection" class="selection"></div>
+            <p id="cartEmpty" class="cart-empty">Sepetiniz boş. Menüden bir ürün seçerek başlayın.</p>
+            <ul id="cartLines" class="cart-lines"></ul>
 
-            <fieldset>
-              <legend>Boyut</legend>
-              <div id="sizeOptions" class="seg-group"></div>
+            <fieldset id="serviceField" hidden>
+              <legend>Servis</legend>
+              <div class="seg-group" role="radiogroup" aria-label="Servis türü">
+                <label class="seg"><input type="radio" name="service" value="Masa" class="sr-only" checked /><span>Masada</span></label>
+                <label class="seg"><input type="radio" name="service" value="Paket" class="sr-only" /><span>Paket</span></label>
+              </div>
+              <label id="tableWrap" class="field" style="margin:10px 0 0">
+                <span class="sr-only">Masa numarası</span>
+                <select name="table" aria-label="Masa numarası"></select>
+              </label>
             </fieldset>
 
             <label class="field">
@@ -56,7 +67,7 @@
 
             <div class="total-row">
               <span>Toplam</span>
-              <strong id="total">-</strong>
+              <strong id="total">0 ₺</strong>
             </div>
 
             <button type="submit" id="submitBtn" class="btn btn-primary btn-block" disabled>Menü yükleniyor...</button>
@@ -75,10 +86,41 @@
 
   <footer class="app-footer"><a href="admin.html">Personel girişi</a></footer>
 
-  <!-- Dar ekranlarda: seçilen ürün ve toplam -->
+  <!-- Ürün seçimi: boyut ve adet -->
+  <dialog id="itemDialog" class="sheet" aria-labelledby="dlgTitle">
+    <form id="dlgForm" method="dialog">
+      <div class="sheet-head">
+        <div>
+          <h2 id="dlgTitle" class="panel-title"></h2>
+          <p id="dlgMeta" class="hint" style="margin:2px 0 0"></p>
+        </div>
+        <button type="button" id="dlgClose" class="icon-btn" aria-label="Kapat">×</button>
+      </div>
+      <div class="sheet-body">
+        <fieldset>
+          <legend>Boyut</legend>
+          <div id="dlgSizes" class="seg-group"></div>
+        </fieldset>
+        <div class="qty-row">
+          <span class="field-label" style="margin:0">Adet</span>
+          <div class="stepper">
+            <button type="button" id="dlgMinus" aria-label="Azalt">−</button>
+            <output id="dlgQty" aria-live="polite">1</output>
+            <button type="button" id="dlgPlus" aria-label="Artır">+</button>
+          </div>
+        </div>
+        <button type="submit" id="dlgAdd" class="btn btn-primary btn-block">Sepete ekle</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Kısa bildirim (ör. "Latte sepete eklendi") -->
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <!-- Dar ekranlarda: sepet özeti -->
   <div id="mobileBar" class="mobile-bar">
-    <div><small id="barLabel">Seçilen ürün</small><strong id="barTotal">-</strong></div>
-    <a href="#orderForm" class="btn btn-primary">Siparişi tamamla</a>
+    <div><small id="barLabel">Sepet</small><strong id="barTotal">0 ₺</strong></div>
+    <a href="#orderForm" class="btn btn-primary">Sepete git</a>
   </div>
 
   <script src="brand.js"></script>

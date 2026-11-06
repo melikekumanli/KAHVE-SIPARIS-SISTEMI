@@ -23,6 +23,16 @@
     </div>
   </header>
 
+  <!-- Mutfak modu çubuğu (yalnızca mutfak modunda görünür) -->
+  <div id="kitchenBar" class="kitchen-bar" hidden>
+    <strong id="kitchenTitle">Mutfak ekranı</strong>
+    <span class="kitchen-actions">
+      <label class="inline-check"><input type="checkbox" id="kitchenSound" checked /> Ses</label>
+      <button type="button" id="fullscreenBtn" class="btn btn-sm">Tam ekran</button>
+      <button type="button" id="kitchenExit" class="btn btn-sm">Çık</button>
+    </span>
+  </div>
+
   <!-- Giriş -->
   <main id="loginView" class="page narrow">
     <form id="loginForm" class="panel">
@@ -42,6 +52,7 @@
   <main id="panel" class="page" hidden>
     <div class="tabs" role="tablist">
       <button type="button" id="tabOrders" class="tab active" role="tab" aria-selected="true">Siparişler <span id="pendingCount" class="count" hidden></span></button>
+      <button type="button" id="tabReports" class="tab" role="tab" aria-selected="false">Raporlar</button>
       <button type="button" id="tabMenu" class="tab" role="tab" aria-selected="false">Menü</button>
       <button type="button" id="tabSettings" class="tab" role="tab" aria-selected="false">Ayarlar</button>
     </div>
@@ -54,7 +65,10 @@
           <button type="button" id="viewArchive">Arşiv</button>
         </div>
         <span id="summary" class="hint" style="margin:0"></span>
-        <label class="inline-check push"><input type="checkbox" id="soundToggle" checked /> Yeni sipariş sesi</label>
+        <span class="push toolbar-right">
+          <label class="inline-check"><input type="checkbox" id="soundToggle" checked /> Yeni sipariş sesi</label>
+          <button type="button" id="kitchenBtn" class="btn btn-sm">Mutfak modu</button>
+        </span>
       </div>
 
       <div id="board" class="board">
@@ -76,12 +90,52 @@
         <div class="table-wrap">
           <table class="table">
             <thead>
-              <tr><th>No</th><th>Müşteri</th><th>Ürün</th><th>Tutar</th><th>Zaman</th><th></th></tr>
+              <tr><th>No</th><th>Müşteri</th><th>Servis</th><th>Ürünler</th><th>Tutar</th><th>Zaman</th><th></th></tr>
             </thead>
             <tbody id="archiveBody"></tbody>
           </table>
         </div>
         <p id="archiveEmpty" class="empty" hidden>Arşivde sipariş yok.</p>
+      </div>
+    </section>
+
+    <!-- Raporlar -->
+    <section id="reportsView" hidden>
+      <div class="toolbar">
+        <div class="segmented" id="rangeTabs" role="group" aria-label="Tarih aralığı">
+          <button type="button" data-range="today" class="active">Bugün</button>
+          <button type="button" data-range="yesterday">Dün</button>
+          <button type="button" data-range="7">Son 7 gün</button>
+          <button type="button" data-range="30">Son 30 gün</button>
+        </div>
+        <span id="rangeLabel" class="hint" style="margin:0"></span>
+        <button type="button" id="csvBtn" class="btn btn-sm push">CSV indir (Excel)</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-label">Sipariş</div><div id="kpiOrders" class="kpi-value">0</div></div>
+        <div class="kpi"><div class="kpi-label">Ciro</div><div id="kpiRevenue" class="kpi-value">0 ₺</div></div>
+        <div class="kpi"><div class="kpi-label">Ürün adedi</div><div id="kpiItems" class="kpi-value">0</div></div>
+        <div class="kpi"><div class="kpi-label">Ortalama sipariş</div><div id="kpiAverage" class="kpi-value">0 ₺</div></div>
+      </div>
+
+      <div class="report-grid">
+        <div class="panel wide-2">
+          <div class="panel-head"><h2 class="panel-title">Günlük ciro</h2></div>
+          <div class="panel-body"><div id="chartDays" class="bars" role="list"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2 class="panel-title">Çok satanlar</h2></div>
+          <div class="panel-body"><ol id="topList" class="rank"></ol></div>
+        </div>
+        <div class="panel wide-2">
+          <div class="panel-head"><h2 class="panel-title">Saat dağılımı (sipariş sayısı)</h2></div>
+          <div class="panel-body"><div id="chartHours" class="bars hours" role="list"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2 class="panel-title">Servis türü</h2></div>
+          <div class="panel-body"><div id="serviceSplit" class="split"></div></div>
+        </div>
       </div>
     </section>
 
@@ -131,6 +185,11 @@
               <span class="field-label">Slogan (isteğe bağlı)</span>
               <input type="text" name="tagline" maxlength="80" />
             </label>
+            <label class="field">
+              <span class="field-label">Masa sayısı</span>
+              <input type="number" name="tableCount" min="0" max="99" step="1" required />
+              <span class="hint" style="display:block">Müşteri sipariş verirken masa numarası seçer ya da "Paket" der. 0 yazarsanız bu seçim kapanır.</span>
+            </label>
             <fieldset>
               <legend>Renk teması</legend>
               <div id="swatches" class="swatches"></div>
@@ -163,6 +222,21 @@
   </main>
 
   <div class="toast-area"><p id="message" class="message" role="status" aria-live="polite" hidden></p></div>
+
+  <!-- Fiş önizleme -->
+  <dialog id="receiptDialog" class="sheet" aria-labelledby="receiptTitle">
+    <div class="sheet-head">
+      <h2 id="receiptTitle" class="panel-title">Fiş önizleme</h2>
+      <button type="button" id="receiptClose" class="icon-btn" aria-label="Kapat">×</button>
+    </div>
+    <div class="sheet-body">
+      <div id="receiptPreview" class="receipt-paper"></div>
+      <div class="row-actions" style="justify-content:flex-end">
+        <button type="button" id="receiptCancel" class="btn">Kapat</button>
+        <button type="button" id="receiptPrint" class="btn btn-primary">Yazdır</button>
+      </div>
+    </div>
+  </dialog>
 
   <!-- Fiş: yalnızca yazdırırken görünür -->
   <div id="receipt" class="receipt" aria-hidden="true"></div>

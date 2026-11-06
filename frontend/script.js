@@ -5,18 +5,26 @@ const listEl = document.getElementById("orderList");
 const emptyInfoEl = document.getElementById("emptyInfo");
 const catTabsEl = document.getElementById("catTabs");
 const menuListEl = document.getElementById("menuList");
-const sizeOptionsEl = document.getElementById("sizeOptions");
-const selectionEl = document.getElementById("selection");
+const cartLinesEl = document.getElementById("cartLines");
+const cartEmptyEl = document.getElementById("cartEmpty");
+const cartCountEl = document.getElementById("cartCount");
 const totalEl = document.getElementById("total");
+const serviceField = document.getElementById("serviceField");
+const tableWrap = document.getElementById("tableWrap");
 const mobileBar = document.getElementById("mobileBar");
+const dialog = document.getElementById("itemDialog");
 
 const STORAGE_KEY = "myOrderIds";
 const NAME_KEY = "customerName";
+const CART_KEY = "cart";
+const SERVICE_KEY = "service";
 const MAX_SAVED_ORDERS = 20;
+const MAX_QTY = 20;
 const POLL_MS = 5000;
 
 let menu = null;
-let selectedType = "";     // seçili ürünün adı
+let tableCount = 0;
+let cart = [];             // [{ type, size, qty }]
 let categoryFilter = "";   // "" = tümü
 let submitting = false;
 let pollTimer = null;
@@ -50,7 +58,7 @@ const getSavedIds = () => {
 };
 const saveIds = (ids) => writeStorage(STORAGE_KEY, ids.slice(0, MAX_SAVED_ORDERS));
 
-// --- Bildirim ---
+// --- Bildirimler ---
 let messageTimer;
 function showMessage(text, type) {
   clearTimeout(messageTimer);
@@ -60,13 +68,31 @@ function showMessage(text, type) {
   messageTimer = setTimeout(() => { messageEl.hidden = true; }, 6000);
 }
 
-// --- Menü ---
-function currentSize() {
-  return menu && menu.sizes.find((s) => s.name === form.elements.size.value);
+let toastTimer;
+function showToast(text) {
+  const toast = document.getElementById("toast");
+  clearTimeout(toastTimer);
+  toast.textContent = text;
+  toast.hidden = false;
+  toastTimer = setTimeout(() => { toast.hidden = true; }, 1800);
 }
 
-function currentItem() {
-  return menu && menu.items.find((i) => i.name === selectedType && i.available);
+// --- Fiyat yardımcıları ---
+const findItem = (name) => menu && menu.items.find((i) => i.name === name);
+const findSize = (name) => menu && menu.sizes.find((s) => s.name === name);
+
+function unitPrice(line) {
+  const item = findItem(line.type);
+  const size = findSize(line.size);
+  return item && size ? item.price + size.extra : 0;
+}
+
+const cartTotal = () => cart.reduce((sum, l) => sum + unitPrice(l) * l.qty, 0);
+const cartQty = () => cart.reduce((sum, l) => sum + l.qty, 0);
+
+// --- Menü ---
+function qtyInCart(itemName) {
+  return cart.filter((l) => l.type === itemName).reduce((s, l) => s + l.qty, 0);
 }
 
 function renderTabs() {
@@ -108,25 +134,23 @@ function renderMenu() {
     const grid = makeEl("div", "menu-items");
 
     items.forEach((item) => {
-      const label = makeEl("label", `menu-item${item.available ? "" : " disabled"}`);
+      const inCart = qtyInCart(item.name);
+      const button = makeEl("button", `menu-item${item.available ? "" : " disabled"}${inCart ? " in-cart" : ""}`);
+      button.type = "button";
+      button.disabled = !item.available;
+      button.setAttribute("aria-label", item.available
+        ? `${item.name}, ${formatPrice(item.price)}${inCart ? `, sepette ${inCart} adet` : ""}`
+        : `${item.name}, tükendi`);
+      button.addEventListener("click", () => openDialog(item));
 
-      const input = document.createElement("input");
-      input.type = "radio";
-      input.name = "type";
-      input.value = item.name;
-      input.className = "sr-only";
-      input.checked = item.available && item.name === selectedType;
-      input.disabled = !item.available;
-      input.addEventListener("change", () => {
-        selectedType = item.name;
-        updateSelection();
-      });
-
-      label.append(input, makeEl("span", "radio-dot"), makeEl("span", "menu-item-name", item.name));
-      label.appendChild(item.available
+      const nameWrap = makeEl("span", "menu-item-name", item.name);
+      if (inCart) nameWrap.appendChild(makeEl("span", "pill", `${inCart} sepette`));
+      button.appendChild(nameWrap);
+      button.appendChild(item.available
         ? makeEl("span", "menu-item-price", formatPrice(item.price))
         : makeEl("span", "tag-soldout", "Tükendi"));
-      grid.appendChild(label);
+      if (item.available) button.appendChild(makeEl("span", "add-mark", "+"));
+      grid.appendChild(button);
     });
 
     section.append(heading, grid);
@@ -134,77 +158,199 @@ function renderMenu() {
   });
 }
 
-function renderSizes() {
-  sizeOptionsEl.innerHTML = "";
+// --- Ürün seçim penceresi (boyut + adet) ---
+let dlgItem = null;
+let dlgQty = 1;
+
+function dlgSize() {
+  const checked = document.querySelector("#dlgSizes input:checked");
+  return findSize(checked ? checked.value : "");
+}
+
+function updateDialogPrice() {
+  const size = dlgSize();
+  const total = dlgItem && size ? (dlgItem.price + size.extra) * dlgQty : 0;
+  document.getElementById("dlgQty").textContent = dlgQty;
+  document.getElementById("dlgAdd").textContent = `Sepete ekle · ${formatPrice(total)}`;
+  document.getElementById("dlgMinus").disabled = dlgQty <= 1;
+  document.getElementById("dlgPlus").disabled = dlgQty >= MAX_QTY;
+}
+
+function openDialog(item) {
+  dlgItem = item;
+  dlgQty = 1;
+  document.getElementById("dlgTitle").textContent = item.name;
+  document.getElementById("dlgMeta").textContent = `${item.category} · ${formatPrice(item.price)}`;
+
+  const sizesEl = document.getElementById("dlgSizes");
+  sizesEl.innerHTML = "";
   menu.sizes.forEach((size, i) => {
     const label = makeEl("label", "seg");
     const input = document.createElement("input");
     input.type = "radio";
-    input.name = "size";
+    input.name = "dlgSize";
     input.value = size.name;
     input.className = "sr-only";
     input.checked = i === 0;
-    input.addEventListener("change", updateSelection);
+    input.addEventListener("change", updateDialogPrice);
     label.append(input, makeEl("span", "", size.name), makeEl("small", "", size.extra ? `+${formatPrice(size.extra)}` : "Standart"));
-    sizeOptionsEl.appendChild(label);
+    sizesEl.appendChild(label);
   });
+
+  updateDialogPrice();
+  dialog.showModal();
 }
 
-function updateSelection() {
-  if (!menu) return;
-  const item = currentItem();
-  if (!item) selectedType = "";
-  const size = currentSize();
+document.getElementById("dlgMinus").addEventListener("click", () => { dlgQty = Math.max(1, dlgQty - 1); updateDialogPrice(); });
+document.getElementById("dlgPlus").addEventListener("click", () => { dlgQty = Math.min(MAX_QTY, dlgQty + 1); updateDialogPrice(); });
+document.getElementById("dlgClose").addEventListener("click", () => dialog.close());
+// Pencerenin dışına (karartılmış alana) tıklayınca kapat
+dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
 
-  selectionEl.innerHTML = "";
-  selectionEl.classList.toggle("filled", !!item);
+document.getElementById("dlgForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const size = dlgSize();
+  if (!dlgItem || !size) return;
+  addToCart(dlgItem.name, size.name, dlgQty);
+  dialog.close();
+  showToast(`${dlgQty} × ${dlgItem.name} sepete eklendi`);
+});
 
-  if (!item) {
-    selectionEl.appendChild(makeEl("div", "selection-empty", "Menüden bir ürün seçin."));
-    totalEl.textContent = "-";
-    document.getElementById("barTotal").textContent = "-";
-    mobileBar.classList.remove("visible");
-    document.body.classList.remove("has-bar");
-  } else {
-    const total = item.price + (size ? size.extra : 0);
-    selectionEl.append(
-      makeEl("div", "selection-name", item.name),
-      makeEl("div", "selection-meta", `${item.category}${size ? ` · ${size.name}` : ""}`)
-    );
-    totalEl.textContent = formatPrice(total);
-    document.getElementById("barLabel").textContent = `${item.name}${size ? ` · ${size.name}` : ""}`;
-    document.getElementById("barTotal").textContent = formatPrice(total);
-    mobileBar.classList.add("visible");
-    document.body.classList.add("has-bar");
-  }
+// --- Sepet ---
+function saveCart() { writeStorage(CART_KEY, cart); }
 
-  if (!menu.items.some((i) => i.available)) {
+function addToCart(type, size, qty) {
+  const existing = cart.find((l) => l.type === type && l.size === size);
+  if (existing) existing.qty = Math.min(MAX_QTY, existing.qty + qty);
+  else cart.push({ type, size, qty });
+  saveCart();
+  renderCart();
+  renderMenu();
+}
+
+function changeQty(index, delta) {
+  const line = cart[index];
+  if (!line) return;
+  line.qty += delta;
+  if (line.qty <= 0) cart.splice(index, 1);
+  line.qty = Math.min(MAX_QTY, line.qty);
+  saveCart();
+  renderCart();
+  renderMenu();
+}
+
+// Menüde olmayan ya da tükenen ürünleri sepetten çıkarır; çıkarılanların adını döner
+function pruneCart() {
+  const removed = [];
+  cart = cart.filter((l) => {
+    const item = findItem(l.type);
+    const ok = item && item.available && findSize(l.size);
+    if (!ok) removed.push(l.type);
+    return ok;
+  });
+  if (removed.length) saveCart();
+  return [...new Set(removed)];
+}
+
+function renderCart() {
+  cartLinesEl.innerHTML = "";
+  const qty = cartQty();
+  const total = cartTotal();
+
+  cartEmptyEl.hidden = cart.length > 0;
+  cartCountEl.hidden = qty === 0;
+  cartCountEl.textContent = qty;
+
+  cart.forEach((line, index) => {
+    const li = makeEl("li", "cart-line");
+
+    const info = makeEl("div", "cart-info");
+    info.append(makeEl("div", "cart-name", line.type), makeEl("div", "cart-meta", `${line.size} · ${formatPrice(unitPrice(line))}`));
+
+    const stepper = makeEl("div", "stepper small");
+    const minus = makeEl("button", "", "−");
+    minus.type = "button";
+    minus.setAttribute("aria-label", line.qty === 1 ? `${line.type} ürününü sepetten kaldır` : `${line.type} adedini azalt`);
+    minus.addEventListener("click", () => changeQty(index, -1));
+    const plus = makeEl("button", "", "+");
+    plus.type = "button";
+    plus.setAttribute("aria-label", `${line.type} adedini artır`);
+    plus.disabled = line.qty >= MAX_QTY;
+    plus.addEventListener("click", () => changeQty(index, 1));
+    const out = makeEl("output", "", String(line.qty));
+    stepper.append(minus, out, plus);
+
+    li.append(info, stepper, makeEl("div", "cart-price", formatPrice(unitPrice(line) * line.qty)));
+    cartLinesEl.appendChild(li);
+  });
+
+  totalEl.textContent = formatPrice(total);
+  document.getElementById("barTotal").textContent = formatPrice(total);
+  document.getElementById("barLabel").textContent = qty ? `Sepet · ${qty} ürün` : "Sepet";
+  mobileBar.classList.toggle("visible", qty > 0);
+  document.body.classList.toggle("has-bar", qty > 0);
+
+  updateSubmit();
+}
+
+function updateSubmit() {
+  if (!menu || !menu.items.some((i) => i.available)) {
     submitBtn.disabled = true;
-    submitBtn.textContent = "Şu an sipariş alınamıyor";
+    submitBtn.textContent = menu ? "Şu an sipariş alınamıyor" : "Menü yükleniyor...";
   } else if (submitting) {
     submitBtn.disabled = true;
     submitBtn.textContent = "Gönderiliyor...";
-  } else if (!item) {
+  } else if (!cart.length) {
     submitBtn.disabled = true;
-    submitBtn.textContent = "Önce bir ürün seçin";
+    submitBtn.textContent = "Önce sepete ürün ekleyin";
   } else {
     submitBtn.disabled = false;
-    submitBtn.textContent = `Siparişi tamamla · ${totalEl.textContent}`;
+    submitBtn.textContent = `Siparişi tamamla · ${formatPrice(cartTotal())}`;
   }
 }
 
+// --- Servis türü (masa / paket) ---
+function currentService() {
+  const checked = form.querySelector("input[name=service]:checked");
+  return checked ? checked.value : "Masa";
+}
+
+function renderService() {
+  serviceField.hidden = tableCount === 0;
+  const select = form.elements.table;
+  const saved = readStorage(SERVICE_KEY, {});
+  select.innerHTML = "";
+  select.appendChild(new Option("Masa numarası seçin", ""));
+  for (let i = 1; i <= tableCount; i++) select.appendChild(new Option(`Masa ${i}`, String(i)));
+  if (saved.table >= 1 && saved.table <= tableCount) select.value = String(saved.table);
+  const radio = form.querySelector(`input[name=service][value="${saved.service === "Paket" ? "Paket" : "Masa"}"]`);
+  if (radio) radio.checked = true;
+  tableWrap.hidden = currentService() !== "Masa";
+}
+
+form.addEventListener("change", (e) => {
+  if (e.target.name === "service" || e.target.name === "table") {
+    tableWrap.hidden = currentService() !== "Masa";
+    writeStorage(SERVICE_KEY, { service: currentService(), table: Number(form.elements.table.value) || null });
+  }
+});
+
+// --- Menü ve ayarları yükle ---
 async function loadMenu() {
   try {
-    const response = await fetch("/api/menu");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    menu = await response.json();
-    // Tükenen ya da silinen ürün seçiliyse seçimi temizle
-    if (!menu.items.some((i) => i.name === selectedType && i.available)) selectedType = "";
+    const [menuRes, settingsRes] = await Promise.all([fetch("/api/menu"), fetch("/api/settings")]);
+    if (!menuRes.ok) throw new Error(`HTTP ${menuRes.status}`);
+    menu = await menuRes.json();
+    tableCount = settingsRes.ok ? Number((await settingsRes.json()).tableCount) || 0 : 0;
+
     if (categoryFilter && !menu.items.some((i) => i.category === categoryFilter)) categoryFilter = "";
+    const removed = pruneCart();
+    if (removed.length) showMessage(`${removed.join(", ")} artık mevcut olmadığı için sepetten çıkarıldı.`, "error");
+
     renderTabs();
     renderMenu();
-    renderSizes();
-    updateSelection();
+    renderService();
+    renderCart();
   } catch (error) {
     console.error("Menü yüklenemedi:", error);
     menuListEl.innerHTML = "";
@@ -231,6 +377,8 @@ function renderSteps(status) {
   return ol;
 }
 
+const serviceLabel = (o) => (o.service === "Masa" ? `Masa ${o.table}` : o.service);
+
 function renderOrders(orders) {
   listEl.innerHTML = "";
   emptyInfoEl.hidden = orders.length > 0;
@@ -244,12 +392,14 @@ function renderOrders(orders) {
       makeEl("span", `badge ${STATUS_CLASS[order.status] || "status-wait"}`, order.status)
     );
 
+    const items = makeEl("ul", "track-items");
+    order.items.forEach((it) => items.appendChild(makeEl("li", "", `${it.qty} × ${it.name} · ${it.size}`)));
+
     const time = new Date(order.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
-    li.append(
-      head,
-      makeEl("div", "track-title", `${order.type} · ${order.size}`),
-      makeEl("div", "track-meta", `${order.name} · ${formatPrice(order.price)} · ${time}`)
-    );
+    const meta = [order.name, formatPrice(order.price), time];
+    if (order.service) meta.splice(1, 0, serviceLabel(order));
+
+    li.append(head, items, makeEl("div", "track-meta", meta.join(" · ")));
     if (order.note) li.appendChild(makeEl("div", "track-note", `Not: ${order.note}`));
     if (order.status !== "Teslim Edildi") li.appendChild(renderSteps(order.status));
     listEl.appendChild(li);
@@ -297,7 +447,7 @@ function stopPolling() {
 // --- Sipariş gönderme ---
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  if (submitting || !currentItem()) return; // çift gönderimi engelle
+  if (submitting || !cart.length) return; // çift gönderimi engelle
 
   const name = form.elements.name.value.trim();
   if (!name) {
@@ -306,10 +456,23 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  const data = { name, type: selectedType, size: form.elements.size.value, note: form.elements.note.value };
+  const service = tableCount > 0 ? currentService() : "";
+  const table = Number(form.elements.table.value) || null;
+  if (tableCount > 0 && service === "Masa" && !table) {
+    showMessage("Lütfen masa numaranızı seçin ya da \"Paket\" seçeneğini işaretleyin.", "error");
+    form.elements.table.focus();
+    return;
+  }
+
+  const data = {
+    name,
+    note: form.elements.note.value,
+    items: cart.map((l) => ({ type: l.type, size: l.size, qty: l.qty })),
+    ...(tableCount > 0 ? { service, table: service === "Masa" ? table : undefined } : {}),
+  };
 
   submitting = true;
-  updateSelection();
+  updateSubmit();
 
   try {
     const response = await fetch("/api/orders", {
@@ -323,28 +486,35 @@ form.addEventListener("submit", async (e) => {
       saveIds([order.id, ...getSavedIds()]);
       writeStorage(NAME_KEY, order.name);
       form.elements.note.value = "";
-      selectedType = "";
+      cart = [];
+      saveCart();
       showMessage(
         order.number ? `Siparişiniz alındı. Sipariş numaranız: #${order.number}` : "Siparişiniz alındı, teşekkürler!",
         "success"
       );
-      await loadMenu(); // güncel menü (tükenen ürünler) ve temiz seçim
+      await loadMenu(); // güncel menü (tükenen ürünler)
       await loadMyOrders();
+      document.getElementById("orderList").scrollIntoView({ behavior: "smooth", block: "nearest" });
     } else {
       // Sunucu doğrulama hatalarını { errors: [...] } olarak döner
       const body = await response.json().catch(() => ({}));
       showMessage((body.errors && body.errors.join(" ")) || "Sunucu hatası oluştu.", "error");
-      if (response.status === 400) await loadMenu(); // ürün tükenmiş olabilir
+      if (response.status === 400) await loadMenu(); // ürün tükenmiş ya da masa sayısı değişmiş olabilir
     }
   } catch (error) {
     console.error("İstek hatası:", error);
     showMessage("Bağlantı kurulamadı.", "error");
   } finally {
     submitting = false;
-    updateSelection();
+    updateSubmit();
   }
 });
 
+// --- Başlangıç ---
+const savedCart = readStorage(CART_KEY, []);
+cart = Array.isArray(savedCart)
+  ? savedCart.filter((l) => l && typeof l.type === "string" && typeof l.size === "string" && Number.isInteger(l.qty) && l.qty > 0)
+  : [];
 form.elements.name.value = readStorage(NAME_KEY, "");
 loadMenu();
 loadMyOrders();

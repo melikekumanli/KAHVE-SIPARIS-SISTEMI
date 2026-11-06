@@ -5,7 +5,10 @@ const DEFAULT_SETTINGS = {
   cafeName: 'Kahve Sipariş',
   tagline: 'Taze kahve, hızlı sipariş',
   theme: 'kahve',
+  tableCount: 10, // 0: masa/paket seçimi kapalı
 };
+
+const MAX_TABLES = 99;
 
 function validateSettings(body) {
   const errors = [];
@@ -26,6 +29,12 @@ function validateSettings(body) {
     if (!THEMES.includes(b.theme)) errors.push(`Tema şunlardan biri olmalı: ${THEMES.join(', ')}.`);
     data.theme = b.theme;
   }
+  if (b.tableCount !== undefined) {
+    if (!Number.isInteger(b.tableCount) || b.tableCount < 0 || b.tableCount > MAX_TABLES) {
+      errors.push(`Masa sayısı 0 ile ${MAX_TABLES} arasında bir tam sayı olmalıdır.`);
+    }
+    data.tableCount = String(b.tableCount);
+  }
   return { errors, data };
 }
 
@@ -38,7 +47,9 @@ function createSettings(db) {
   return {
     get() {
       const stored = Object.fromEntries(selectAll.all().map((r) => [r.key, r.value]));
-      return { ...DEFAULT_SETTINGS, ...stored, themes: THEMES };
+      const merged = { ...DEFAULT_SETTINGS, ...stored };
+      merged.tableCount = Number(merged.tableCount);
+      return { ...merged, themes: THEMES };
     },
     update(data) {
       Object.entries(data).forEach(([k, v]) => upsert.run(k, v));

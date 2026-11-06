@@ -25,6 +25,8 @@ let menu = { items: [], sizes: [], statuses: [] };
 let activeOrders = [];    // teslim edilmemiş siparişler
 let archiveOrders = [];   // teslim edilenler (arşiv görünümündeyken yüklenir)
 let view = "active";      // "active" | "archive"
+let currentTab = "orders";
+let range = "today";      // rapor aralığı
 let seenOrderIds = null;  // null: ilk yükleme (ses çalma)
 let pollTimer = null;
 let audioCtx = null;
@@ -60,7 +62,10 @@ function formatDateTime(iso) {
     : `${d.toLocaleDateString("tr-TR", { day: "2-digit", month: "2-digit" })} ${formatTime(iso)}`;
 }
 
+const formatMoney = (n) => `${Number(n).toLocaleString("tr-TR")} ₺`;
 const orderLabel = (o) => (o.number ? `#${o.number}` : "Sipariş");
+const serviceLabel = (o) => (o.service === "Masa" ? `Masa ${o.table}` : o.service);
+const itemsText = (o) => o.items.map((i) => `${i.qty}× ${i.name} (${i.size})`).join(", ");
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -95,6 +100,13 @@ async function attempt(fallback, fn) {
   }
 }
 
+function button(text, className, onClick, title) {
+  const b = el("button", { type: "button", className: `btn btn-sm ${className}`.trim(), textContent: text });
+  if (title) b.title = title;
+  b.addEventListener("click", onClick);
+  return b;
+}
+
 // ---------- Ses ----------
 function beep() {
   if (!soundToggle.checked) return;
@@ -125,6 +137,7 @@ function logout(message) {
   clearInterval(pollTimer);
   pollTimer = null;
   seenOrderIds = null;
+  setKitchen(false);
   window.Brand.setPending(0);
   panel.hidden = true;
   $("logoutBtn").hidden = true;
@@ -132,40 +145,47 @@ function logout(message) {
   if (message) showMessage(message);
 }
 
-// ---------- Fiş ----------
-function printReceipt(order) {
+// ---------- Fiş (önizleme + yazdırma) ----------
+function buildReceipt(order) {
   const brand = window.Brand.data || {};
   const line = (left, right, cls = "") =>
     el("div", { className: `line ${cls}` }, el("span", { textContent: left }), el("span", { textContent: right }));
-  const r = $("receipt");
-  r.innerHTML = "";
-  r.append(
+
+  const root = el("div", { className: "receipt-body" });
+  root.append(
     el("h1", { textContent: brand.cafeName || "" }),
     ...(brand.tagline ? [el("div", { className: "center", textContent: brand.tagline })] : []),
     el("hr"),
     el("div", { className: "center", textContent: "SİPARİŞ NO" }),
     el("div", { className: "big", textContent: order.number ? `#${order.number}` : "-" }),
+    ...(order.service ? [el("div", { className: "center strong", textContent: serviceLabel(order).toLocaleUpperCase("tr-TR") })] : []),
     el("div", { className: "center", textContent: new Date(order.createdAt).toLocaleString("tr-TR") }),
     el("hr"),
     line("Müşteri", order.name),
-    line(order.type, order.size),
-    ...(order.note ? [el("div", { textContent: `Not: ${order.note}` })] : []),
+    el("hr"),
+    ...order.items.map((i) => line(`${i.qty}× ${i.name} (${i.size})`, `${i.lineTotal} TL`)),
+    ...(order.note ? [el("div", { className: "note", textContent: `Not: ${order.note}` })] : []),
     el("hr"),
     line("TOPLAM", `${order.price} TL`, "total"),
     el("hr"),
     el("div", { className: "center", textContent: "Afiyet olsun!" })
   );
-  window.print();
+  return root;
 }
+
+function showReceipt(order) {
+  const receipt = buildReceipt(order);
+  $("receiptPreview").replaceChildren(receipt);
+  $("receipt").replaceChildren(receipt.cloneNode(true));
+  $("receiptDialog").showModal();
+}
+
+$("receiptPrint").addEventListener("click", () => window.print());
+$("receiptClose").addEventListener("click", () => $("receiptDialog").close());
+$("receiptCancel").addEventListener("click", () => $("receiptDialog").close());
+$("receiptDialog").addEventListener("click", (e) => { if (e.target === $("receiptDialog")) $("receiptDialog").close(); });
 
 // ---------- Siparişler: pano ----------
-function button(text, className, onClick, title) {
-  const b = el("button", { type: "button", className: `btn btn-sm ${className}`.trim(), textContent: text });
-  if (title) b.title = title;
-  b.addEventListener("click", onClick);
-  return b;
-}
-
 function ticket(order) {
   const flow = FLOW[order.status];
   const actions = el("div", { className: "ticket-actions" });
@@ -174,17 +194,23 @@ function ticket(order) {
     if (flow.prev) actions.appendChild(button("Geri al", "", () => changeStatus(order.id, flow.prev), `"${flow.prev}" durumuna döndür`));
   }
   actions.append(
-    button("Fiş", "", () => printReceipt(order)),
+    button("Fiş", "", () => showReceipt(order)),
     button("Sil", "btn-danger", () => removeOrder(order))
   );
+
+  const who = el("div", { className: "ticket-who" });
+  if (order.service) who.appendChild(el("span", { className: `chip ${order.service === "Masa" ? "chip-table" : "chip-takeaway"}`, textContent: serviceLabel(order) }));
+  who.appendChild(el("span", { textContent: order.name }));
 
   return el("li", { className: "ticket" },
     el("div", { className: "ticket-head" },
       el("span", { className: "ticket-no", textContent: orderLabel(order) }),
       el("span", { className: "ticket-time", textContent: formatDateTime(order.createdAt) })),
-    el("div", { className: "ticket-item" }, order.type, " ", el("span", { textContent: `· ${order.size}` })),
-    el("div", { className: "ticket-meta", textContent: `${order.name} · ${order.price} ₺` }),
+    who,
+    el("ul", { className: "ticket-items" },
+      ...order.items.map((i) => el("li", {}, el("b", { textContent: `${i.qty}×` }), ` ${i.name} `, el("span", { textContent: `· ${i.size}` })))),
     ...(order.note ? [el("div", { className: "ticket-note", textContent: `Not: ${order.note}` })] : []),
+    el("div", { className: "ticket-total", textContent: formatMoney(order.price) }),
     actions);
 }
 
@@ -202,6 +228,7 @@ function renderBoard() {
   const pending = activeOrders.filter((o) => o.status === "Bekliyor").length;
   $("pendingCount").textContent = pending;
   $("pendingCount").hidden = pending === 0;
+  $("kitchenTitle").textContent = `Mutfak ekranı · ${pending} bekleyen`;
   window.Brand.setPending(pending);
   $("summary").textContent = `${activeOrders.length} aktif sipariş`;
 }
@@ -219,12 +246,13 @@ function renderArchive() {
     body.appendChild(el("tr", {},
       el("td", { className: "num-cell", textContent: orderLabel(o) }),
       el("td", { textContent: o.name }),
-      el("td", { textContent: `${o.type} · ${o.size}` }),
-      el("td", { className: "num", textContent: `${o.price} ₺` }),
+      el("td", { textContent: o.service ? serviceLabel(o) : "-" }),
+      el("td", { textContent: itemsText(o) }),
+      el("td", { className: "num", textContent: formatMoney(o.price) }),
       el("td", { textContent: formatDateTime(o.createdAt) }),
       el("td", {}, el("div", { className: "actions" },
         button("Geri al", "", () => changeStatus(o.id, "Hazır"), "Teslime hazır durumuna döndür"),
-        button("Fiş", "", () => printReceipt(o)),
+        button("Fiş", "", () => showReceipt(o)),
         button("Sil", "btn-danger", () => removeOrder(o))))));
   });
 }
@@ -244,7 +272,7 @@ async function loadOrders() {
     activeOrders = active;
     renderBoard();
 
-    if (view === "archive") {
+    if (view === "archive" && currentTab === "orders") {
       archiveOrders = await fetchOrders(`?status=${encodeURIComponent(DONE)}&limit=${ARCHIVE_LIMIT}`);
       renderArchive();
     }
@@ -278,6 +306,145 @@ function setView(next) {
 }
 $("viewActive").addEventListener("click", () => setView("active"));
 $("viewArchive").addEventListener("click", () => setView("archive"));
+
+// ---------- Mutfak modu ----------
+function setKitchen(on) {
+  document.body.classList.toggle("kitchen", on);
+  $("kitchenBar").hidden = !on;
+  if (on) {
+    selectTab("orders");
+    if (view !== "active") setView("active");
+    $("kitchenSound").checked = soundToggle.checked;
+  } else if (document.fullscreenElement) {
+    document.exitFullscreen().catch(() => {});
+  }
+}
+
+$("kitchenBtn").addEventListener("click", () => setKitchen(true));
+$("kitchenExit").addEventListener("click", () => setKitchen(false));
+$("kitchenSound").addEventListener("change", (e) => { soundToggle.checked = e.target.checked; });
+$("fullscreenBtn").addEventListener("click", () => {
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else document.documentElement.requestFullscreen().catch(() => showMessage("Tam ekran bu tarayıcıda açılamadı."));
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("kitchen") && !document.fullscreenElement) setKitchen(false); });
+
+// ---------- Raporlar ----------
+function rangeBounds(which) {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const day = (offset) => { const d = new Date(start); d.setDate(d.getDate() + offset); return d; };
+  switch (which) {
+    case "yesterday": return { from: day(-1), to: day(0) };
+    case "7": return { from: day(-6), to: day(1) };
+    case "30": return { from: day(-29), to: day(1) };
+    default: return { from: day(0), to: day(1) };
+  }
+}
+
+const rangeQuery = () => {
+  const { from, to } = rangeBounds(range);
+  return `from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`;
+};
+
+// CSS ile çizilen çubuk grafik: values = [{ label, value, text }]
+function renderBars(container, values, { showValues = true } = {}) {
+  container.replaceChildren();
+  const max = Math.max(1, ...values.map((v) => v.value));
+  values.forEach((v) => {
+    const bar = el("div", { className: "bar", style: `height:${Math.max(v.value ? 4 : 0, Math.round((v.value / max) * 100))}%` });
+    bar.title = v.text;
+    const col = el("div", { className: "bar-col" },
+      el("div", { className: "bar-val", textContent: showValues && v.value ? v.shortText ?? String(v.value) : "" }),
+      el("div", { className: "bar-track" }, bar),
+      el("div", { className: "bar-label", textContent: v.label }));
+    col.setAttribute("role", "listitem");
+    col.setAttribute("aria-label", v.text);
+    container.appendChild(col);
+  });
+}
+
+function renderReport(r) {
+  $("kpiOrders").textContent = r.totals.orders;
+  $("kpiRevenue").textContent = formatMoney(r.totals.revenue);
+  $("kpiItems").textContent = r.totals.items;
+  $("kpiAverage").textContent = formatMoney(r.totals.average);
+
+  const many = r.byDay.length > 14;
+  renderBars($("chartDays"), r.byDay.map((d) => {
+    const [, m, day] = d.date.split("-");
+    return { label: many ? (Number(day) % 5 === 1 ? `${day}.${m}` : "") : `${day}.${m}`, value: d.revenue, shortText: String(d.revenue), text: `${day}.${m}: ${d.orders} sipariş, ${formatMoney(d.revenue)}` };
+  }), { showValues: !many });
+
+  renderBars($("chartHours"), r.byHour.map((count, h) => ({
+    label: h % 3 === 0 ? String(h).padStart(2, "0") : "",
+    value: count,
+    text: `${String(h).padStart(2, "0")}:00 - ${count} sipariş`,
+  })), { showValues: false });
+
+  const top = $("topList");
+  top.replaceChildren();
+  if (!r.topItems.length) top.appendChild(el("li", { className: "empty", textContent: "Bu aralıkta satış yok." }));
+  const maxQty = Math.max(1, ...r.topItems.map((t) => t.qty));
+  r.topItems.forEach((t) => {
+    const fill = el("span", { className: "rank-fill" });
+    fill.style.width = `${Math.round((t.qty / maxQty) * 100)}%`;
+    top.appendChild(el("li", { className: "rank-row" },
+      el("div", { className: "rank-head" }, el("span", { className: "rank-name", textContent: t.name }), el("span", { className: "rank-qty", textContent: `${t.qty} adet · ${formatMoney(t.revenue)}` })),
+      el("div", { className: "rank-bar" }, fill)));
+  });
+
+  const total = r.totals.orders;
+  const split = $("serviceSplit");
+  split.replaceChildren();
+  [["Masa", r.byService.Masa], ["Paket", r.byService.Paket], ["Belirtilmemiş", r.byService.Diğer]]
+    .filter(([, n]) => n > 0)
+    .forEach(([label, n]) => {
+      const pct = total ? Math.round((n / total) * 100) : 0;
+      const fill = el("span", { className: "rank-fill" });
+      fill.style.width = `${pct}%`;
+      split.appendChild(el("div", { className: "rank-row" },
+        el("div", { className: "rank-head" }, el("span", { className: "rank-name", textContent: label }), el("span", { className: "rank-qty", textContent: `${n} sipariş · %${pct}` })),
+        el("div", { className: "rank-bar" }, fill)));
+    });
+  if (!total) split.appendChild(el("p", { className: "empty", textContent: "Bu aralıkta sipariş yok." }));
+}
+
+async function loadReport() {
+  const { from, to } = rangeBounds(range);
+  $("rangeLabel").textContent = range === "today" || range === "yesterday"
+    ? from.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })
+    : `${from.toLocaleDateString("tr-TR", { day: "numeric", month: "long" })} - ${new Date(to - 1).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}`;
+  await attempt("Rapor yüklenemedi.", async () => {
+    const response = await api(`/api/reports?${rangeQuery()}`);
+    if (!response.ok) return reportFailure(response, "Rapor yüklenemedi.");
+    renderReport(await response.json());
+  });
+}
+
+$("rangeTabs").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-range]");
+  if (!btn) return;
+  range = btn.dataset.range;
+  document.querySelectorAll("#rangeTabs button").forEach((b) => b.classList.toggle("active", b === btn));
+  loadReport();
+});
+
+// CSV: anahtar başlıkla gönderildiği için dosya fetch ile alınıp tarayıcıdan indirilir
+$("csvBtn").addEventListener("click", async () => {
+  await attempt("CSV indirilemedi.", async () => {
+    const response = await api(`/api/reports/orders.csv?${rangeQuery()}`);
+    if (!response.ok) return reportFailure(response, "CSV indirilemedi.");
+    const blob = await response.blob();
+    const match = /filename="([^"]+)"/.exec(response.headers.get("content-disposition") || "");
+    const link = el("a", { href: URL.createObjectURL(blob), download: match ? match[1] : "siparisler.csv" });
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    showMessage("CSV dosyası indirildi. Excel'de açabilirsiniz.", "success");
+  });
+});
 
 // ---------- Menü yönetimi ----------
 async function loadMenu() {
@@ -373,7 +540,7 @@ $("sizesForm").addEventListener("submit", async (e) => {
   });
 });
 
-// ---------- Ayarlar (marka) ----------
+// ---------- Ayarlar (marka, masa sayısı) ----------
 function updatePreview() {
   const form = $("settingsForm");
   const name = form.cafeName.value.trim() || "Kafe adı";
@@ -388,6 +555,7 @@ function renderSettings() {
   const form = $("settingsForm");
   form.cafeName.value = s.cafeName || "";
   form.tagline.value = s.tagline || "";
+  form.tableCount.value = Number.isInteger(s.tableCount) ? s.tableCount : 10;
 
   const swatches = $("swatches");
   swatches.innerHTML = "";
@@ -411,7 +579,7 @@ $("settingsForm").addEventListener("submit", async (e) => {
   await attempt("Ayarlar kaydedilemedi.", async () => {
     const response = await api("/api/settings", {
       method: "PUT",
-      body: JSON.stringify({ cafeName: form.cafeName.value, tagline: form.tagline.value, theme }),
+      body: JSON.stringify({ cafeName: form.cafeName.value, tagline: form.tagline.value, theme, tableCount: form.tableCount.valueAsNumber }),
     });
     if (!response.ok) return reportFailure(response, "Ayarlar kaydedilemedi.");
     const saved = await response.json();
@@ -422,9 +590,15 @@ $("settingsForm").addEventListener("submit", async (e) => {
 });
 
 // ---------- Sekmeler ----------
-const TABS = { orders: ["tabOrders", "ordersView"], menu: ["tabMenu", "menuView"], settings: ["tabSettings", "settingsView"] };
+const TABS = {
+  orders: ["tabOrders", "ordersView"],
+  reports: ["tabReports", "reportsView"],
+  menu: ["tabMenu", "menuView"],
+  settings: ["tabSettings", "settingsView"],
+};
 
 function selectTab(name) {
+  currentTab = name;
   Object.entries(TABS).forEach(([key, [tabId, viewId]]) => {
     const active = key === name;
     $(viewId).hidden = !active;
@@ -434,6 +608,8 @@ function selectTab(name) {
   // Kaydedilmemiş tema önizlemesi sekme değişince geri alınır
   if (window.Brand.data) document.documentElement.dataset.theme = window.Brand.data.theme || "kahve";
   if (name === "settings") renderSettings();
+  if (name === "reports") loadReport();
+  if (name === "orders" && view === "archive") loadOrders();
 }
 Object.entries(TABS).forEach(([key, [tabId]]) => $(tabId).addEventListener("click", () => selectTab(key)));
 $("logoutBtn").addEventListener("click", () => logout());

@@ -12,15 +12,18 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 
 **Müşteri (`/`)**
 - Kategori sekmeleriyle filtrelenen düzenli bir menü; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
-- Yanda yapışkan "Siparişiniz" paneli: seçilen ürün, boyut, toplam tutar ve tek ana buton. Telefonda ekranın altında toplam ve "Siparişi tamamla" çubuğu görünür.
+- **Sepet:** ürüne dokununca boyut ve adet seçilir; tek siparişte birden çok ürün (2 latte + 1 çay). Sepet sayfa yenilense de korunur; tükenen ürünler sepetten otomatik çıkarılır.
+- **Masa / paket:** müşteri masa numarasını seçer ya da "Paket" der. Masa sayısı panelden ayarlanır (0 yazılırsa seçim kapanır).
 - Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde adım göstergesiyle canlı takip (Alındı → Hazırlanıyor → Hazır).
-- Girilen ismin hatırlanması, çift gönderim koruması.
+- Telefon, tablet ve masaüstünde uyumlu; telefonda alt sepet çubuğu ve alttan açılan ürün penceresi. Girilen ismin hatırlanması, çift gönderim koruması.
 
 **Personel paneli (`/admin.html`)**
 - Yönetici anahtarıyla giriş.
 - **Sipariş panosu:** siparişler Bekleyen / Hazırlanıyor / Teslime hazır sütunlarında akar; tek tıkla bir sonraki aşamaya geçirme ("Hazırlamaya başla" → "Hazır" → "Teslim edildi"), geri alma, silme. Yeni sipariş gelince **sesli uyarı** ve sekme başlığında bekleyen sayısı: `(3) Personel Paneli · Kafe Adı`.
 - **Arşiv:** teslim edilen siparişler panodan çıkar ve "Arşiv" tablosunda saklanır; panel günlerce çalışsa da hızlı kalır.
-- **Fiş:** her sipariş için 80 mm termal yazıcıya uygun fiş yazdırma (kafe adı, sipariş no, ürün, tutar).
+- **Fiş:** yazdırmadan önce ekranda **önizleme**; 80 mm termal yazıcıya uygun (kafe adı, sipariş no, masa/paket, ürün satırları, tutar).
+- **Mutfak modu:** büyük yazı ve büyük dokunma alanlarıyla tam ekran sipariş panosu (tablet ya da mutfak ekranı için).
+- **Raporlar:** bugün / dün / son 7 / son 30 gün için sipariş sayısı, ciro, ürün adedi, ortalama sipariş; günlük ciro ve saat dağılımı grafikleri, çok satanlar, masa/paket oranı. **CSV (Excel) olarak indirme.**
 - **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme.
 - **Ayarlar (marka):** kafe adı, slogan ve 4 renk temasından seçim, canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
@@ -29,7 +32,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - Hatalı anahtar denemeleri ve aşırı sipariş gönderimi hız sınırıyla engellenir.
 - Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
 - Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
-- 28 otomatik API testi (doğrulama, yetki, hız sınırı, arşiv, ayarlar, eski veritabanı yükseltme).
+- 36 otomatik API testi (sepet doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -80,6 +83,7 @@ KAHVE-SIPARIS-SISTEMI/
 │   ├── app.js           # Express uygulaması: tüm uç noktalar
 │   ├── db.js            # SQLite bağlantısı, tablolar, varsayılan menü
 │   ├── menu.js          # Menü işlemleri ve doğrulama
+│   ├── orders.js        # Sepet doğrulama, sipariş kaydı, rapor ve CSV
 │   ├── settings.js      # Marka ayarları (ad, slogan, tema)
 │   ├── rateLimiter.js   # Hız sınırlayıcı
 │   └── api.test.js      # API testleri
@@ -95,7 +99,7 @@ KAHVE-SIPARIS-SISTEMI/
 
 ## 💾 Veri ve Yedekleme
 
-Tüm veri (siparişler ve menü) `data/orders.db` dosyasındadır. **Yedeklemek için sunucu kapalıyken bu klasörü kopyalamanız yeterlidir.** Yeni bir bilgisayara taşırken de `data/` klasörünü kopyalayın.
+Tüm veri (siparişler, ürün satırları, menü, ayarlar) `data/orders.db` dosyasındadır. Eski sürümde verilmiş tek ürünlü siparişler açılışta otomatik olarak yeni sepet yapısına dönüştürülür. **Yedeklemek için sunucu kapalıyken bu klasörü kopyalamanız yeterlidir.** Yeni bir bilgisayara taşırken de `data/` klasörünü kopyalayın.
 
 ## 🔌 API
 
@@ -111,13 +115,29 @@ Tüm veri (siparişler ve menü) `data/orders.db` dosyasındadır. **Yedeklemek 
 | PATCH  | `/api/menu/items/:id`       | Barista | Ürünü günceller (ad, kategori, fiyat, `available`) |
 | DELETE | `/api/menu/items/:id`       | Barista | Ürünü siler |
 | PUT    | `/api/menu/sizes`           | Barista | Boyut listesini değiştirir |
-| GET    | `/api/settings`             | Herkes  | Kafe adı, slogan, tema |
-| PUT    | `/api/settings`             | Barista | Marka ayarlarını günceller |
+| GET    | `/api/settings`             | Herkes  | Kafe adı, slogan, tema, masa sayısı |
+| PUT    | `/api/settings`             | Barista | Marka ayarlarını ve masa sayısını günceller |
+| GET    | `/api/reports`              | Barista | Özet rapor: `?from=<ISO>&to=<ISO>` (en fazla 93 gün) |
+| GET    | `/api/reports/orders.csv`   | Barista | Aynı aralığın siparişleri, Excel uyumlu CSV |
 
 Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla hatalı denemede `429` döner.
 
-**Sipariş gövdesi:** `{ "name": "Melike", "type": "Latte", "size": "Orta", "note": "karamelli" }`
-`type` ve `size` menüde var olmalıdır; tükenmiş ürün sipariş edilemez. Hatalarda `400` ve `{ "errors": ["..."] }` döner.
+**Sipariş gövdesi:**
+```json
+{
+  "name": "Melike",
+  "note": "az şekerli",
+  "items": [
+    { "type": "Latte", "size": "Orta", "qty": 2 },
+    { "type": "Çay", "size": "Küçük", "qty": 1 }
+  ],
+  "service": "Masa",
+  "table": 5
+}
+```
+- `items`: 1-20 satır, satır başına 1-20 adet, toplam en fazla 50. Ürün ve boyut menüde var olmalı, tükenmiş ürün sipariş edilemez. Aynı ürün+boyut satırları birleştirilir.
+- `service`: `"Masa"` (`table` 1..masa sayısı) ya da `"Paket"`. Masa sayısı 0 ise gerekmez.
+- Fiyat ve durum istemciden alınmaz, sunucu hesaplar. Hatalarda `400` ve `{ "errors": ["..."] }` döner.
 
 ## ⚙️ Yapılandırma (isteğe bağlı)
 
@@ -135,7 +155,8 @@ Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla
 - Tek paylaşılan barista anahtarı vardır; kullanıcı hesabı ve oturum yönetimi yoktur. **Sunucuyu internete açmayın**, yerel ağ için tasarlanmıştır (trafik şifrelenmez, HTTPS yoktur).
 - Müşteri siparişlerini tarayıcısında hatırlar; başka cihazdan görünmez.
 - Durum takibi ve yeni sipariş bildirimi birkaç saniyelik yoklama ile yapılır (anlık değildir).
-- Ödeme, masa numarası ve ciro raporlama yoktur.
+- Ödeme (online/kasa) yoktur; ciro raporu siparişlere dayanır, tahsilat takibi yapılmaz.
+- Raporlardaki gün ve saatler sunucu bilgisayarın yerel saatine göredir.
 - Logo dosyası yüklenmez; logo yerine kafe adının baş harfi kullanılır.
 - `node:sqlite` Node'da henüz deneysel olarak işaretlidir.
 

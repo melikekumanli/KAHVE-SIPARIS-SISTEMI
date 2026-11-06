@@ -1,8 +1,8 @@
 const cors = require('cors');
 const express = require('express');
 const crypto = require('crypto');
-const { toOrder } = require('./db');
 const { STATUSES, validateItem, validateSizes, createMenu } = require('./menu');
+const { validateOrder, validateRange, createOrders } = require('./orders');
 const { createRateLimiter } = require('./rateLimiter');
 const { validateSettings, createSettings } = require('./settings');
 
@@ -23,6 +23,7 @@ function createApp(db, options) {
 
   const menu = createMenu(db);
   const settings = createSettings(db);
+  const orders = createOrders(db);
   const orderLimiter = createRateLimiter(orderLimit);
   const loginLimiter = createRateLimiter(loginLimit);
 
@@ -48,18 +49,6 @@ function createApp(db, options) {
     const id = Number(req.params.id);
     return Number.isInteger(id) ? id : null;
   };
-
-  const insertOrder = db.prepare(
-    `INSERT INTO orders (id, number, name, type, size, note, price, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, 'Bekliyor', ?, ?)`
-  );
-  // Sipariş numarası her gün 1'den başlar (sunucunun yerel saatine göre)
-  const nextNumber = db.prepare(
-    'SELECT COALESCE(MAX(number), 0) + 1 AS n FROM orders WHERE created_at >= ?'
-  );
-  const selectById = db.prepare('SELECT * FROM orders WHERE id = ?');
-  const updateStatus = db.prepare('UPDATE orders SET status = ?, updated_at = ? WHERE id = ?');
-  const deleteById = db.prepare('DELETE FROM orders WHERE id = ?');
 
   // ---------- Menü ----------
 
@@ -118,49 +107,23 @@ function createApp(db, options) {
 
   // ---------- Siparişler ----------
 
-  // Yeni sipariş (herkese açık)
+  // Yeni sipariş (herkese açık). Gövde: { name, note, items: [{ type, size, qty }], service, table }
   app.post('/api/orders', (req, res) => {
     if (orderLimiter.blocked(req.ip)) {
       return res.status(429).json({ errors: ['Çok fazla sipariş gönderdiniz. Lütfen biraz bekleyin.'] });
     }
 
-    const body = req.body || {};
-    const errors = [];
-    const name = typeof body.name === 'string' ? body.name.trim() : '';
-    const note = typeof body.note === 'string' ? body.note.trim() : '';
-
-    if (!name) errors.push('İsim zorunludur.');
-    else if (name.length > 50) errors.push('İsim en fazla 50 karakter olabilir.');
-    if (note.length > 200) errors.push('Not en fazla 200 karakter olabilir.');
-
-    const item = typeof body.type === 'string' ? menu.findItem(body.type) : null;
-    if (!item) errors.push('Geçersiz kahve türü.');
-    else if (!item.available) errors.push(`${item.name} şu an mevcut değil (tükendi).`);
-
-    const size = typeof body.size === 'string' ? menu.findSize(body.size) : null;
-    if (!size) errors.push('Geçersiz boyut.');
-
+    const { errors, order } = validateOrder(req.body, { menu, tableCount: settings.get().tableCount });
     if (errors.length) return res.status(400).json({ errors });
 
     orderLimiter.hit(req.ip);
-    const id = crypto.randomUUID();
-    const now = new Date();
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const number = nextNumber.get(dayStart.toISOString()).n;
-    insertOrder.run(
-      id, number, name, item.name, size.name, note, item.price + size.extra,
-      now.toISOString(), now.toISOString()
-    );
-    res.status(201).json({
-      message: 'Sipariş başarıyla kaydedildi.',
-      order: toOrder(selectById.get(id)),
-    });
+    res.status(201).json({ message: 'Sipariş başarıyla kaydedildi.', order: orders.create(order) });
   });
 
   // Tek siparişin durumu: id tahmin edilemez bir UUID olduğu için herkese açık.
   // Müşteri kendi siparişini bu uçtan takip eder.
   app.get('/api/orders/:id', (req, res) => {
-    const order = toOrder(selectById.get(req.params.id));
+    const order = orders.findById(req.params.id);
     if (!order) return res.status(404).json({ errors: ['Sipariş bulunamadı.'] });
     res.json(order);
   });
@@ -178,16 +141,7 @@ function createApp(db, options) {
     else if (limit !== undefined && (Number(limit) < 1 || Number(limit) > 500)) errors.push('Limit 1 ile 500 arasında olmalıdır.');
     if (errors.length) return res.status(400).json({ errors });
 
-    const where = [];
-    const params = [];
-    if (status) { where.push('status = ?'); params.push(status); }
-    if (scope === 'active') { where.push('status != ?'); params.push('Teslim Edildi'); }
-    let sql = 'SELECT * FROM orders';
-    if (where.length) sql += ' WHERE ' + where.join(' AND ');
-    sql += ' ORDER BY created_at DESC, rowid DESC';
-    if (limit !== undefined) { sql += ' LIMIT ?'; params.push(Number(limit)); }
-
-    res.json(db.prepare(sql).all(...params).map(toOrder));
+    res.json(orders.list({ status, scope, limit: limit === undefined ? undefined : Number(limit) }));
   });
 
   // Sipariş durumunu güncelleme (yönetici)
@@ -196,16 +150,34 @@ function createApp(db, options) {
     if (!STATUSES.includes(status)) {
       return res.status(400).json({ errors: [`Durum şunlardan biri olmalı: ${STATUSES.join(', ')}.`] });
     }
-    const { changes } = updateStatus.run(status, new Date().toISOString(), req.params.id);
-    if (!changes) return res.status(404).json({ errors: ['Sipariş bulunamadı.'] });
-    res.json(toOrder(selectById.get(req.params.id)));
+    const order = orders.setStatus(req.params.id, status);
+    if (!order) return res.status(404).json({ errors: ['Sipariş bulunamadı.'] });
+    res.json(order);
   });
 
   // Sipariş silme (yönetici)
   app.delete('/api/orders/:id', requireAdmin, (req, res) => {
-    const { changes } = deleteById.run(req.params.id);
-    if (!changes) return res.status(404).json({ errors: ['Sipariş bulunamadı.'] });
+    if (!orders.remove(req.params.id)) return res.status(404).json({ errors: ['Sipariş bulunamadı.'] });
     res.status(204).end();
+  });
+
+  // ---------- Raporlar (yönetici) ----------
+  // ?from=<ISO tarih>&to=<ISO tarih> : from dahil, to hariç, en fazla 93 gün
+
+  app.get('/api/reports', requireAdmin, (req, res) => {
+    const { errors, from, to } = validateRange(req.query);
+    if (errors.length) return res.status(400).json({ errors });
+    res.json(orders.report(from, to));
+  });
+
+  app.get('/api/reports/orders.csv', requireAdmin, (req, res) => {
+    const { errors, from, to } = validateRange(req.query);
+    if (errors.length) return res.status(400).json({ errors });
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="siparisler-${from.toISOString().slice(0, 10)}.csv"`,
+    });
+    res.send(orders.toCsv(from, to));
   });
 
   // Frontend dosyaları
