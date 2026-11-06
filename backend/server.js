@@ -12,7 +12,12 @@ const COFFEE_TYPES = ['Türk Kahvesi', 'Latte', 'Espresso'];
 const SIZES = ['Küçük', 'Orta', 'Büyük'];
 
 app.use(express.json({ limit: '10kb' }));
-app.use(cors());
+// Yerelde live-server adreslerine izin verilir. Canlıda ALLOWED_ORIGIN
+// ortam değişkeni ile (virgülle ayrılmış) frontend adresi belirtilmelidir.
+const allowedOrigins = process.env.ALLOWED_ORIGIN
+  ? process.env.ALLOWED_ORIGIN.split(',').map((o) => o.trim())
+  : ['http://localhost:8080', 'http://127.0.0.1:8080'];
+app.use(cors({ origin: allowedOrigins }));
 
 async function readOrders() {
   try {
