@@ -43,12 +43,21 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
       available INTEGER NOT NULL DEFAULT 1
     );
 
+    CREATE TABLE IF NOT EXISTS settings (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS sizes (
       name       TEXT PRIMARY KEY,
       extra      INTEGER NOT NULL,
       sort_order INTEGER NOT NULL
     );
   `);
+
+  // Eski veritabanlarına sipariş numarası sütununu ekle
+  const orderColumns = db.prepare('PRAGMA table_info(orders)').all().map((c) => c.name);
+  if (!orderColumns.includes('number')) db.exec('ALTER TABLE orders ADD COLUMN number INTEGER');
 
   if (db.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n === 0) {
     const ins = db.prepare('INSERT INTO menu_items (name, category, price) VALUES (?, ?, ?)');
@@ -66,6 +75,7 @@ function toOrder(row) {
   if (!row) return null;
   return {
     id: row.id,
+    number: row.number ?? null,
     name: row.name,
     type: row.type,
     size: row.size,

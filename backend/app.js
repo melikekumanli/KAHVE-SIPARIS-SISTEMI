@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { toOrder } = require('./db');
 const { STATUSES, validateItem, validateSizes, createMenu } = require('./menu');
 const { createRateLimiter } = require('./rateLimiter');
+const { validateSettings, createSettings } = require('./settings');
 
 function safeEqual(a, b) {
   const ha = crypto.createHash('sha256').update(String(a)).digest();
@@ -21,6 +22,7 @@ function createApp(db, options) {
   } = options;
 
   const menu = createMenu(db);
+  const settings = createSettings(db);
   const orderLimiter = createRateLimiter(orderLimit);
   const loginLimiter = createRateLimiter(loginLimit);
 
@@ -48,14 +50,14 @@ function createApp(db, options) {
   };
 
   const insertOrder = db.prepare(
-    `INSERT INTO orders (id, name, type, size, note, price, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'Bekliyor', ?, ?)`
+    `INSERT INTO orders (id, number, name, type, size, note, price, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'Bekliyor', ?, ?)`
+  );
+  // Sipariş numarası her gün 1'den başlar (sunucunun yerel saatine göre)
+  const nextNumber = db.prepare(
+    'SELECT COALESCE(MAX(number), 0) + 1 AS n FROM orders WHERE created_at >= ?'
   );
   const selectById = db.prepare('SELECT * FROM orders WHERE id = ?');
-  const selectAll = db.prepare('SELECT * FROM orders ORDER BY created_at DESC, rowid DESC');
-  const selectByStatus = db.prepare(
-    'SELECT * FROM orders WHERE status = ? ORDER BY created_at DESC, rowid DESC'
-  );
   const updateStatus = db.prepare('UPDATE orders SET status = ?, updated_at = ? WHERE id = ?');
   const deleteById = db.prepare('DELETE FROM orders WHERE id = ?');
 
@@ -103,6 +105,17 @@ function createApp(db, options) {
     res.json(menu.getMenu().sizes);
   });
 
+  // ---------- Marka ayarları ----------
+
+  // Kafe adı, slogan ve tema (herkese açık: müşteri sayfası da kullanır)
+  app.get('/api/settings', (req, res) => res.json(settings.get()));
+
+  app.put('/api/settings', requireAdmin, (req, res) => {
+    const { errors, data } = validateSettings(req.body);
+    if (errors.length) return res.status(400).json({ errors });
+    res.json(settings.update(data));
+  });
+
   // ---------- Siparişler ----------
 
   // Yeni sipariş (herkese açık)
@@ -131,8 +144,13 @@ function createApp(db, options) {
 
     orderLimiter.hit(req.ip);
     const id = crypto.randomUUID();
-    const now = new Date().toISOString();
-    insertOrder.run(id, name, item.name, size.name, note, item.price + size.extra, now, now);
+    const now = new Date();
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const number = nextNumber.get(dayStart.toISOString()).n;
+    insertOrder.run(
+      id, number, name, item.name, size.name, note, item.price + size.extra,
+      now.toISOString(), now.toISOString()
+    );
     res.status(201).json({
       message: 'Sipariş başarıyla kaydedildi.',
       order: toOrder(selectById.get(id)),
@@ -147,14 +165,29 @@ function createApp(db, options) {
     res.json(order);
   });
 
-  // Tüm siparişler (yönetici). İsteğe bağlı: ?status=Bekliyor
+  // Siparişler (yönetici). İsteğe bağlı filtreler:
+  //   ?scope=active  -> teslim edilmemiş siparişler (arşivdekiler hariç)
+  //   ?status=Hazır  -> tek bir durum
+  //   ?limit=100     -> en yeni N sipariş (en fazla 500)
   app.get('/api/orders', requireAdmin, (req, res) => {
-    const { status } = req.query;
-    if (status !== undefined && !STATUSES.includes(status)) {
-      return res.status(400).json({ errors: ['Geçersiz durum filtresi.'] });
-    }
-    const rows = status ? selectByStatus.all(status) : selectAll.all();
-    res.json(rows.map(toOrder));
+    const { status, scope, limit } = req.query;
+    const errors = [];
+    if (status !== undefined && !STATUSES.includes(status)) errors.push('Geçersiz durum filtresi.');
+    if (scope !== undefined && scope !== 'active') errors.push('Geçersiz kapsam filtresi.');
+    if (limit !== undefined && !/^[0-9]+$/.test(String(limit))) errors.push('Geçersiz limit.');
+    else if (limit !== undefined && (Number(limit) < 1 || Number(limit) > 500)) errors.push('Limit 1 ile 500 arasında olmalıdır.');
+    if (errors.length) return res.status(400).json({ errors });
+
+    const where = [];
+    const params = [];
+    if (status) { where.push('status = ?'); params.push(status); }
+    if (scope === 'active') { where.push('status != ?'); params.push('Teslim Edildi'); }
+    let sql = 'SELECT * FROM orders';
+    if (where.length) sql += ' WHERE ' + where.join(' AND ');
+    sql += ' ORDER BY created_at DESC, rowid DESC';
+    if (limit !== undefined) { sql += ' LIMIT ?'; params.push(Number(limit)); }
+
+    res.json(db.prepare(sql).all(...params).map(toOrder));
   });
 
   // Sipariş durumunu güncelleme (yönetici)

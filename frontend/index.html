@@ -3,46 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kahve Sipariş Formu</title>
+  <title>Sipariş Ver</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="container">
-    <h1>☕ Kahve Siparişi Ver</h1>
+<body data-title="Sipariş Ver">
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-mark" data-brand-mark>K</span>
+        <div>
+          <div class="brand-name" data-brand-name>Kahve Sipariş</div>
+          <div class="brand-tagline" data-brand-tagline></div>
+        </div>
+      </div>
+    </div>
+  </header>
 
-    <form id="orderForm">
-      <label>İsim:
-        <input type="text" name="name" maxlength="50" required />
-      </label>
+  <main class="page">
+    <section class="card">
+      <h1 class="card-title">Yeni sipariş</h1>
 
-      <fieldset>
-        <legend>Ürün:</legend>
-        <div id="typeOptions"></div>
-      </fieldset>
+      <form id="orderForm">
+        <label class="field">
+          <span class="field-label">İsminiz</span>
+          <input type="text" name="name" maxlength="50" autocomplete="given-name" required />
+        </label>
 
-      <fieldset>
-        <legend>Boyut:</legend>
-        <div id="sizeOptions" class="choices"></div>
-      </fieldset>
+        <fieldset>
+          <legend>Ürün</legend>
+          <div id="typeOptions"></div>
+        </fieldset>
 
-      <label>Not:
-        <textarea name="note" maxlength="200" placeholder="(Opsiyonel)"></textarea>
-      </label>
+        <fieldset>
+          <legend>Boyut</legend>
+          <div id="sizeOptions" class="choices"></div>
+        </fieldset>
 
-      <p class="total">Toplam: <strong id="total">-</strong></p>
+        <label class="field">
+          <span class="field-label">Not (isteğe bağlı)</span>
+          <textarea name="note" maxlength="200" placeholder="Örn. az şekerli"></textarea>
+        </label>
 
-      <button type="submit" id="submitBtn" disabled>Menü yükleniyor...</button>
-      <p id="message" class="message" role="status" aria-live="polite" hidden></p>
-    </form>
+        <div class="summary-row">
+          <span>Toplam</span>
+          <strong id="total">-</strong>
+        </div>
 
-    <hr>
-    <h2>Siparişlerim</h2>
-    <p id="emptyInfo" class="empty-info" hidden>Henüz sipariş vermediniz.</p>
-    <ul id="orderList" class="orders"></ul>
+        <button type="submit" id="submitBtn" class="btn btn-primary btn-block" disabled>Menü yükleniyor...</button>
+        <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+      </form>
+    </section>
 
-    <p class="footer-link"><a href="admin.html">Barista girişi</a></p>
-  </div>
+    <section class="card">
+      <h2 class="card-title">Siparişlerim</h2>
+      <p id="emptyInfo" class="empty" hidden>Henüz sipariş vermediniz.</p>
+      <ul id="orderList" class="order-list"></ul>
+    </section>
+  </main>
 
+  <footer class="app-footer"><a href="admin.html">Personel girişi</a></footer>
+
+  <script src="brand.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

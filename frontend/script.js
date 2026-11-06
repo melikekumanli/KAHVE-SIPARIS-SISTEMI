@@ -86,7 +86,7 @@ function renderMenu() {
   const categories = [...new Set(menu.items.map((i) => i.category))];
   let firstAvailableChecked = false;
   categories.forEach((category) => {
-    const title = document.createElement("h3");
+    const title = document.createElement("div");
     title.className = "category-title";
     title.textContent = category;
     const group = document.createElement("div");
@@ -123,7 +123,7 @@ async function loadMenu() {
     renderMenu();
     if (menu.items.some((i) => i.available)) {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Sipariş Ver";
+      submitBtn.textContent = "Sipariş ver";
     } else {
       submitBtn.textContent = "Şu an sipariş alınamıyor";
     }
@@ -135,8 +135,14 @@ async function loadMenu() {
 }
 
 // --- Siparişlerim ---
-function statusClass(status) {
-  return "status-" + ({ "Bekliyor": "wait", "Hazırlanıyor": "prep", "Hazır": "ready", "Teslim Edildi": "done" }[status] || "wait");
+const STATUS_CLASS = { "Bekliyor": "status-wait", "Hazırlanıyor": "status-prep", "Hazır": "status-ready", "Teslim Edildi": "status-done" };
+const STATUS_PROGRESS = { "Bekliyor": 25, "Hazırlanıyor": 60, "Hazır": 100, "Teslim Edildi": 100 };
+
+function makeEl(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
 }
 
 function renderOrders(orders) {
@@ -144,25 +150,27 @@ function renderOrders(orders) {
   emptyInfoEl.hidden = orders.length > 0;
 
   orders.forEach((order) => {
-    const li = document.createElement("li");
+    const li = makeEl("li", "order-card");
 
-    const top = document.createElement("div");
-    top.className = "order-top";
-    const title = document.createElement("strong");
-    title.textContent = `${order.type} (${order.size})`;
-    const badge = document.createElement("span");
-    badge.className = `badge ${statusClass(order.status)}`;
-    badge.textContent = order.status;
-    top.append(title, badge);
+    const head = makeEl("div", "order-head");
+    head.append(
+      makeEl("span", "order-no", order.number ? `#${order.number}` : "Sipariş"),
+      makeEl("span", `badge ${STATUS_CLASS[order.status] || "status-wait"}`, order.status)
+    );
 
-    const meta = document.createElement("div");
-    meta.className = "order-meta";
     const time = new Date(order.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
-    meta.textContent =
-      `${order.name} · ${formatPrice(order.price)} · ${time}` +
-      (order.note ? ` · Not: ${order.note}` : "");
+    const progress = makeEl("div", `progress${order.status === "Teslim Edildi" || order.status === "Hazır" ? " done" : ""}`);
+    const bar = document.createElement("span");
+    bar.style.width = `${STATUS_PROGRESS[order.status] || 25}%`;
+    progress.appendChild(bar);
 
-    li.append(top, meta);
+    li.append(
+      head,
+      makeEl("div", "order-title", `${order.type} · ${order.size}`),
+      makeEl("div", "order-meta", `${order.name} · ${formatPrice(order.price)} · ${time}`)
+    );
+    if (order.note) li.appendChild(makeEl("div", "order-note", `Not: ${order.note}`));
+    li.appendChild(progress);
     listEl.appendChild(li);
   });
 }
@@ -233,7 +241,7 @@ form.addEventListener("submit", async (e) => {
       form.reset();
       form.elements.name.value = getSavedName();
       await loadMenu(); // güncel menü (tükenen ürünler) ve varsayılan seçimler
-      showMessage("Siparişin alındı, teşekkürler!", "success");
+      showMessage(order.number ? `Siparişiniz alındı. Sipariş numaranız: #${order.number}` : "Siparişiniz alındı, teşekkürler!", "success");
       await loadMyOrders();
     } else {
       // Sunucu doğrulama hatalarını { errors: [...] } olarak döner
@@ -248,7 +256,7 @@ form.addEventListener("submit", async (e) => {
     showMessage("Bağlantı kurulamadı.", "error");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Sipariş Ver";
+    submitBtn.textContent = "Sipariş ver";
   }
 });
 

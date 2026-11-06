@@ -1,6 +1,9 @@
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
+const { DatabaseSync } = require('node:sqlite');
 const { openDb } = require('./db');
 const { createApp } = require('./app');
 
@@ -33,7 +36,7 @@ after(() => stop(server));
 
 // Her testte siparişler temizlenir; menü ve boyutlar varsayılana döner
 beforeEach(() => {
-  db.exec('DELETE FROM orders; DELETE FROM menu_items; DELETE FROM sizes;');
+  db.exec('DELETE FROM orders; DELETE FROM menu_items; DELETE FROM sizes; DELETE FROM settings;');
   db.exec(`INSERT INTO menu_items (name, category, price) VALUES
     ('Türk Kahvesi','Kahve',60), ('Latte','Kahve',90), ('Çay','Diğer',25);
     INSERT INTO sizes (name, extra, sort_order) VALUES ('Küçük',0,0), ('Orta',10,1), ('Büyük',20,2);`);
@@ -266,12 +269,89 @@ test('yönetici siparişi siler', async () => {
   assert.equal((await adminFetch(`/api/orders/${order.id}`, 'DELETE')).status, 404);
 });
 
+// ---------- Sipariş numarası, arşiv, ayarlar ----------
+
+test('sipariş numarası birden başlayıp birer artar', async () => {
+  const numbers = [];
+  for (let i = 0; i < 3; i++) numbers.push((await (await post(validOrder)).json()).order.number);
+  assert.deepEqual(numbers, [1, 2, 3]);
+  const first = (await (await fetch(`${base}/api/orders`, { headers: ADMIN })).json()).at(-1);
+  assert.equal(first.number, 1);
+});
+
+test('scope=active teslim edilenleri (arşiv) hariç tutar; limit en yeni N siparişi verir', async () => {
+  const ids = [];
+  for (const name of ['a', 'b', 'c', 'd']) ids.push((await (await post({ ...validOrder, name })).json()).order.id);
+  await adminFetch(`/api/orders/${ids[0]}/status`, 'PATCH', { status: 'Teslim Edildi' });
+  await adminFetch(`/api/orders/${ids[1]}/status`, 'PATCH', { status: 'Teslim Edildi' });
+
+  const get = async (q) => (await (await fetch(`${base}/api/orders${q}`, { headers: ADMIN })).json()).map((o) => o.name);
+  assert.deepEqual(await get('?scope=active'), ['d', 'c']);
+  assert.deepEqual(await get('?status=Teslim%20Edildi'), ['b', 'a']);
+  assert.deepEqual(await get('?limit=3'), ['d', 'c', 'b']);
+  assert.deepEqual(await get('?status=Teslim%20Edildi&limit=1'), ['b']);
+
+  for (const q of ['?limit=0', '?limit=501', '?limit=abc', '?limit=-1', '?scope=hepsi', '?status=x']) {
+    assert.equal((await fetch(`${base}/api/orders${q}`, { headers: ADMIN })).status, 400, q);
+  }
+});
+
+test('ayarlar: varsayılanlar herkese açık, güncelleme sadece yöneticiye', async () => {
+  const s = await (await fetch(`${base}/api/settings`)).json();
+  assert.equal(s.cafeName, 'Kahve Sipariş');
+  assert.equal(s.theme, 'kahve');
+  assert.ok(s.themes.includes('zeytin'));
+
+  const put = (body, headers = ADMIN) =>
+    fetch(`${base}/api/settings`, { method: 'PUT', headers: { ...JSON_HEADERS, ...headers }, body: JSON.stringify(body) });
+
+  assert.equal((await put({ cafeName: 'X' }, {})).status, 401);
+
+  const ok = await put({ cafeName: '  Moka Kafe  ', tagline: 'Her gün taze', theme: 'zeytin' });
+  assert.equal(ok.status, 200);
+  const saved = await (await fetch(`${base}/api/settings`)).json();
+  assert.equal(saved.cafeName, 'Moka Kafe');
+  assert.equal(saved.tagline, 'Her gün taze');
+  assert.equal(saved.theme, 'zeytin');
+
+  // kısmi güncelleme diğer alanları bozmaz
+  await put({ theme: 'bordo' });
+  const partial = await (await fetch(`${base}/api/settings`)).json();
+  assert.equal(partial.cafeName, 'Moka Kafe');
+  assert.equal(partial.theme, 'bordo');
+
+  for (const bad of [{ cafeName: '' }, { cafeName: 'x'.repeat(41) }, { tagline: 'x'.repeat(81) }, { theme: 'pembe' }, { cafeName: 5 }]) {
+    assert.equal((await put(bad)).status, 400, JSON.stringify(bad));
+  }
+});
+
+test('numara sütunu olmayan eski veritabanı sorunsuz yükseltilir', () => {
+  const file = path.join(os.tmpdir(), `kahve-eski-${process.pid}.db`);
+  try {
+    const old = new DatabaseSync(file);
+    old.exec(`CREATE TABLE orders (id TEXT PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL, size TEXT NOT NULL,
+      note TEXT NOT NULL DEFAULT '', price INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'Bekliyor',
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+      INSERT INTO orders VALUES ('abc','Eski','Latte','Orta','',100,'Hazır','2026-01-01T10:00:00.000Z','2026-01-01T10:00:00.000Z');`);
+    old.close();
+
+    const upgraded = openDb(file);
+    const row = upgraded.prepare('SELECT * FROM orders').get();
+    assert.equal(row.name, 'Eski');
+    assert.equal(row.number, null);
+    assert.ok(upgraded.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n > 0);
+    upgraded.close();
+  } finally {
+    for (const ext of ['', '-wal', '-shm']) fs.rmSync(file + ext, { force: true });
+  }
+});
+
 // ---------- Genel ----------
 
 test('frontend dosyaları aynı sunucudan sunulur', async () => {
   const page = await fetch(`${base}/`);
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /Kahve Siparişi/);
+  assert.match(await page.text(), /Yeni sipariş/);
   assert.equal((await fetch(`${base}/admin.html`)).status, 200);
 });
 

@@ -13,20 +13,23 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 **Müşteri (`/`)**
 - Menüden ürün ve boyut seçme; fiyat ve toplam tutar anında görünür.
 - Ürünler kategoriye göre gruplanır; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
-- "Siparişlerim" bölümünde siparişin durumunu (Bekliyor → Hazırlanıyor → Hazır → Teslim Edildi) canlı takip etme.
+- Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde durum takibi (Bekliyor → Hazırlanıyor → Hazır → Teslim Edildi), ilerleme çubuğuyla.
 - Telefondan rahat kullanım, girilen ismin hatırlanması, çift gönderim koruması.
 
-**Barista paneli (`/admin.html`)**
-- Yönetici anahtarıyla giriş.
-- **Siparişler:** tüm siparişleri görme, duruma göre filtreleme, durum güncelleme, silme. Yeni sipariş gelince **sesli uyarı** ve sekme başlığında bekleyen sayısı: `(3) Barista Paneli`.
+**Personel paneli (`/admin.html`)**
+- Yönetici anahtarıyla giriş; bekleyen / hazırlanan / teslime hazır sipariş sayaçları.
+- **Siparişler:** tek tıkla bir sonraki aşamaya geçirme ("Hazırlamaya başla" → "Hazır" → "Teslim edildi"), geri alma, duruma göre filtreleme, silme. Yeni sipariş gelince **sesli uyarı** ve sekme başlığında bekleyen sayısı: `(3) Personel Paneli · Kafe Adı`.
+- **Arşiv:** teslim edilen siparişler aktif listeden çıkar ve "Arşiv" görünümünde saklanır; panel günlerce çalışsa da hızlı kalır.
+- **Fiş:** her sipariş için 80 mm termal yazıcıya uygun fiş yazdırma (kafe adı, sipariş no, ürün, tutar).
 - **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme.
+- **Ayarlar (marka):** kafe adı, slogan ve 4 renk temasından seçim; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
 **Güvenlik ve güvenilirlik**
 - Barista anahtarı ilk açılışta rastgele üretilir (tahmin edilebilir varsayılan yok).
 - Hatalı anahtar denemeleri ve aşırı sipariş gönderimi hız sınırıyla engellenir.
 - Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
 - Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
-- 24 otomatik API testi.
+- 28 otomatik API testi (doğrulama, yetki, hız sınırı, arşiv, ayarlar, eski veritabanı yükseltme).
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -62,7 +65,7 @@ Sunucu açılınca konsolda şuna benzer bir çıktı görürsünüz:
 ```
 
 - **Müşteriler** telefondan "Ağdaki cihazlar" adresini açar (aynı Wi-Fi'da olmalıdır). Kolaylık için bu adresi QR koda çevirip masalara koyabilirsiniz.
-- **Barista** aynı adrese `/admin.html` ekleyerek girer ve konsoldaki anahtarı yazar. Anahtar `data/admin-token.txt` dosyasında da saklanır.
+- **Personel** aynı adrese `/admin.html` ekleyerek girer ve konsoldaki anahtarı yazar. Anahtar `data/admin-token.txt` dosyasında da saklanır.
 
 > **Windows Güvenlik Duvarı:** İlk çalıştırmada Windows "Node.js'in ağ erişimine izin verilsin mi?" diye sorar. Telefonların bağlanabilmesi için **Özel ağlar**'a izin verin.
 
@@ -77,12 +80,14 @@ KAHVE-SIPARIS-SISTEMI/
 │   ├── app.js           # Express uygulaması: tüm uç noktalar
 │   ├── db.js            # SQLite bağlantısı, tablolar, varsayılan menü
 │   ├── menu.js          # Menü işlemleri ve doğrulama
+│   ├── settings.js      # Marka ayarları (ad, slogan, tema)
 │   ├── rateLimiter.js   # Hız sınırlayıcı
 │   └── api.test.js      # API testleri
 ├── frontend/
 │   ├── index.html, script.js   # Müşteri sayfası
-│   ├── admin.html, admin.js    # Barista paneli
-│   └── style.css
+│   ├── admin.html, admin.js    # Personel paneli
+│   ├── brand.js                # Kafe adı/tema uygulayıcı (iki sayfada ortak)
+│   └── style.css               # Tasarım sistemi (renk değişkenleri, temalar, yazdırma)
 ├── data/                # Veritabanı ve barista anahtarı (otomatik oluşur, git'e girmez)
 ├── baslat.bat           # Tek tıkla başlatma (Windows)
 └── package.json
@@ -99,13 +104,15 @@ Tüm veri (siparişler ve menü) `data/orders.db` dosyasındadır. **Yedeklemek 
 | GET    | `/api/menu`                 | Herkes  | Ürünler, boyutlar, durum listesi |
 | POST   | `/api/orders`               | Herkes  | Yeni sipariş |
 | GET    | `/api/orders/:id`           | Herkes  | Tek siparişin durumu (id tahmin edilemez bir UUID'dir) |
-| GET    | `/api/orders?status=Hazır`  | Barista | Tüm siparişler (isteğe bağlı durum filtresi) |
+| GET    | `/api/orders`               | Barista | Siparişler. Filtreler: `?scope=active` (arşiv hariç), `?status=Hazır`, `?limit=100` |
 | PATCH  | `/api/orders/:id/status`    | Barista | Sipariş durumunu günceller |
 | DELETE | `/api/orders/:id`           | Barista | Siparişi siler |
 | POST   | `/api/menu/items`           | Barista | Ürün ekler |
 | PATCH  | `/api/menu/items/:id`       | Barista | Ürünü günceller (ad, kategori, fiyat, `available`) |
 | DELETE | `/api/menu/items/:id`       | Barista | Ürünü siler |
 | PUT    | `/api/menu/sizes`           | Barista | Boyut listesini değiştirir |
+| GET    | `/api/settings`             | Herkes  | Kafe adı, slogan, tema |
+| PUT    | `/api/settings`             | Barista | Marka ayarlarını günceller |
 
 Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla hatalı denemede `429` döner.
 
@@ -128,7 +135,8 @@ Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla
 - Tek paylaşılan barista anahtarı vardır; kullanıcı hesabı ve oturum yönetimi yoktur. **Sunucuyu internete açmayın**, yerel ağ için tasarlanmıştır (trafik şifrelenmez, HTTPS yoktur).
 - Müşteri siparişlerini tarayıcısında hatırlar; başka cihazdan görünmez.
 - Durum takibi ve yeni sipariş bildirimi birkaç saniyelik yoklama ile yapılır (anlık değildir).
-- Ödeme, masa numarası ve raporlama yoktur.
+- Ödeme, masa numarası ve ciro raporlama yoktur.
+- Logo dosyası yüklenmez; logo yerine kafe adının baş harfi kullanılır.
 - `node:sqlite` Node'da henüz deneysel olarak işaretlidir.
 
 ## 👤 Geliştiren
