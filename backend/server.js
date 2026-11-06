@@ -16,7 +16,7 @@ app.use(express.json({ limit: '10kb' }));
 // ortam değişkeni ile (virgülle ayrılmış) frontend adresi belirtilmelidir.
 const allowedOrigins = process.env.ALLOWED_ORIGIN
   ? process.env.ALLOWED_ORIGIN.split(',').map((o) => o.trim())
-  : ['http://localhost:8080', 'http://127.0.0.1:8080'];
+  : ['http://localhost:5500', 'http://127.0.0.1:5500'];
 app.use(cors({ origin: allowedOrigins }));
 
 async function readOrders() {

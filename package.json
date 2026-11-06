@@ -6,7 +6,7 @@
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node backend/server.js",
-    "client": "live-server frontend"
+    "client": "live-server frontend --port=5500"
   },
   "author": "Melike",
   "license": "ISC",
