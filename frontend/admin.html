@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Barista Paneli</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container wide">
+    <h1>🧑‍🍳 Barista Paneli</h1>
+
+    <form id="loginForm" class="login">
+      <label>Yönetici anahtarı:
+        <input type="password" id="tokenInput" autocomplete="off" required />
+      </label>
+      <button type="submit">Giriş</button>
+    </form>
+
+    <section id="panel" hidden>
+      <div class="toolbar">
+        <label for="statusFilter">Duruma göre:</label>
+        <select id="statusFilter"></select>
+        <button type="button" id="logoutBtn" class="secondary">Çıkış</button>
+      </div>
+      <p id="summary" class="empty-info"></p>
+      <ul id="adminList" class="orders"></ul>
+    </section>
+
+    <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+    <p class="footer-link"><a href="index.html">← Sipariş sayfası</a></p>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

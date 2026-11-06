@@ -4,8 +4,11 @@ body {
   background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
   margin: 0;
   padding: 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 /* Form kutusu */
@@ -37,8 +40,12 @@ label {
 
 /* Giriş alanları */
 input[type="text"],
+input[type="password"],
 textarea,
 select {
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
   width: 100%;
   padding: 10px;
   margin-top: 5px;
@@ -98,12 +105,6 @@ legend {
   color: #444;
 }
 
-label.radio {
-  display: inline-block;
-  margin-right: 18px;
-  font-weight: normal;
-}
-
 /* Bildirim kutusu */
 .message {
   margin: 15px 0 0;
@@ -122,16 +123,6 @@ label.radio {
   color: #a12622;
 }
 
-/* Sipariş listesi */
-#orderList {
-  padding-left: 20px;
-}
-
-#orderList li {
-  margin-bottom: 8px;
-  color: #444;
-}
-
 .empty-info {
   color: #888;
   font-style: italic;
@@ -145,4 +136,165 @@ label.radio {
   .container {
     padding: 20px;
   }
+}
+
+/* ---- Menü seçenekleri (kart görünümü) ---- */
+.container.wide {
+  max-width: 720px;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+label.choice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-weight: normal;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+label.choice small {
+  color: #8a6a4f;
+  font-weight: bold;
+}
+
+label.choice:has(input:checked) {
+  border-color: #B87D4B;
+  background-color: #fbf3ea;
+}
+
+label.choice:has(input:focus-visible) {
+  outline: 2px solid #B87D4B;
+  outline-offset: 2px;
+}
+
+input[type="radio"] {
+  margin: 0;
+}
+
+.total {
+  margin: 20px 0 0;
+  text-align: right;
+  font-size: 18px;
+  color: #5c4033;
+}
+
+/* ---- Sipariş kartları ---- */
+ul.orders {
+  list-style: none;
+  padding: 0;
+}
+
+ul.orders li {
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fffdfb;
+}
+
+.order-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #777;
+}
+
+.order-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.order-actions select {
+  margin-top: 0;
+}
+
+.order-actions button {
+  margin-top: 0;
+  width: auto;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+/* ---- Durum rozetleri ---- */
+.badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.status-wait  { background: #fff3cd; color: #7a5b00; }
+.status-prep  { background: #dbeafe; color: #1d4e89; }
+.status-ready { background: #d4edda; color: #1e6b34; }
+.status-done  { background: #e5e7eb; color: #4b5563; }
+
+/* ---- Barista paneli ---- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar label {
+  margin: 0;
+}
+
+.toolbar select {
+  width: auto;
+  margin-top: 0;
+}
+
+.toolbar button {
+  margin: 0 0 0 auto;
+  width: auto;
+  padding: 8px 16px;
+}
+
+button.secondary {
+  background-color: #8a8a8a;
+}
+
+button.secondary:hover {
+  background-color: #6f6f6f;
+}
+
+button.danger {
+  background-color: #c0392b;
+}
+
+button.danger:hover {
+  background-color: #a5281b;
+}
+
+.footer-link {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.footer-link a {
+  color: #8a6a4f;
+}
+
+[hidden] {
+  display: none !important;
 }

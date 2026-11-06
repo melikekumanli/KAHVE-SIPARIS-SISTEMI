@@ -10,19 +10,28 @@ Bir kahve dükkanının müşterilerinden web üzerinden sipariş almasını sa�
 
 ## 🔧 Özellikler
 
-- Form ile kahve siparişi verme (isim, kahve türü, boyut, not).
-- Siparişler JSON olarak backend'e gönderilir, doğrulanır ve `backend/orders.json` dosyasına kaydedilir.
-- Verilen tüm siparişler sayfada listelenir (en yeni üstte).
+**Müşteri (`index.html`)**
+- Menüden kahve türü ve boyut seçme; fiyat ve toplam tutar anında görünür.
+- "Siparişlerim" bölümünde kendi siparişlerinin durumunu (Bekliyor → Hazırlanıyor → Hazır → Teslim Edildi) canlı takip etme.
 - Sayfa içi başarı/hata bildirimi, çift gönderim koruması, mobil uyumlu arayüz.
-- Backend tarafında doğrulama, hata yönetimi ve eşzamanlı yazma koruması.
+
+**Barista (`admin.html`)**
+- Yönetici anahtarıyla giriş.
+- Tüm siparişleri görme, duruma göre filtreleme, durum güncelleme ve silme.
+
+**Backend**
+- Siparişler SQLite veritabanında saklanır.
+- Sunucu tarafı doğrulama, hata yönetimi, fiyat hesabı (fiyatı istemci belirleyemez).
+- Otomatik API testleri.
 
 ## 🛠️ Kullanılan Teknolojiler
 
 | Katman         | Teknoloji                         |
 |----------------|-----------------------------------|
 | Frontend       | HTML, CSS, vanilla JavaScript     |
-| Backend        | Node.js + Express 5 + cors        |
-| Veri saklama   | `backend/orders.json` (JSON dosyası, veritabanı yok) |
+| Backend        | Node.js (>= 22.5) + Express 5 + cors |
+| Veritabanı     | SQLite (Node'un yerleşik `node:sqlite` modülü, ek paket gerekmez) |
+| Test           | Node'un yerleşik test çalıştırıcısı (`node:test`) |
 | Geliştirme     | `live-server`, `concurrently`     |
 | Kolay başlatma | `baslat.bat` (Windows)            |
 
@@ -31,15 +40,19 @@ Bir kahve dükkanının müşterilerinden web üzerinden sipariş almasını sa�
 ```
 KAHVE-SIPARIS-SISTEMI/
 ├── backend/
-│   ├── server.js        # Express API
-│   └── orders.json      # Siparişlerin saklandığı dosya
+│   ├── server.js        # Sunucuyu başlatır (port, CORS, yönetici anahtarı)
+│   ├── app.js           # Express uygulaması: uç noktalar ve doğrulama
+│   ├── db.js            # SQLite bağlantısı ve tablo
+│   ├── menu.js          # Menü, fiyatlar ve sipariş durumları
+│   ├── api.test.js      # API testleri
+│   └── orders.db        # Veritabanı dosyası (otomatik oluşur, git'e girmez)
 ├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-├── .vscode/launch.json  # VS Code'dan Chrome ile açma ayarı
+│   ├── index.html, script.js   # Müşteri sayfası
+│   ├── admin.html, admin.js    # Barista paneli
+│   ├── config.js               # Backend adresi
+│   └── style.css
 ├── baslat.bat           # Tek tıkla başlatma (Windows)
-├── package.json         # Tüm bağımlılıklar ve scriptler (tek dosya)
+├── package.json         # Bağımlılıklar ve scriptler
 └── README.md
 ```
 
@@ -72,12 +85,25 @@ npm run server   # sadece backend (port 3000)
 npm run client   # sadece frontend (port 5500)
 ```
 
+**Testleri çalıştırmak için:**
+```bash
+npm test
+```
+
+**Barista paneli:** http://localhost:5500/admin.html. Geliştirme ortamında varsayılan anahtar `barista`'dır (aşağıdaki "Yapılandırma" bölümüne bakın).
+
 ## 🔌 API
 
-| Metot | Adres          | Açıklama                      |
-|-------|----------------|-------------------------------|
-| POST  | `/api/orders`  | Yeni sipariş oluşturur        |
-| GET   | `/api/orders`  | Tüm siparişleri listeler      |
+| Metot  | Adres                        | Erişim  | Açıklama |
+|--------|------------------------------|---------|----------|
+| GET    | `/api/menu`                  | Herkes  | Menü, fiyatlar ve durum listesi |
+| POST   | `/api/orders`                | Herkes  | Yeni sipariş oluşturur |
+| GET    | `/api/orders/:id`            | Herkes  | Tek siparişin durumu (id tahmin edilemez bir UUID'dir) |
+| GET    | `/api/orders?status=Hazır`   | Barista | Tüm siparişler (isteğe bağlı durum filtresi) |
+| PATCH  | `/api/orders/:id/status`     | Barista | Sipariş durumunu günceller |
+| DELETE | `/api/orders/:id`            | Barista | Siparişi siler |
+
+Barista uçları `x-admin-token` başlığı ister; yanlışsa `401` döner.
 
 **POST gövdesi:**
 ```json
@@ -89,24 +115,28 @@ npm run client   # sadece frontend (port 5500)
 - `type`: `Türk Kahvesi`, `Latte` veya `Espresso`
 - `size`: `Küçük`, `Orta` veya `Büyük`
 - `note`: opsiyonel, en fazla 200 karakter
+- Fiyat ve durum istemciden alınmaz: fiyat sunucuda hesaplanır, yeni sipariş her zaman `Bekliyor` ile başlar.
 
-**Başarılı yanıt (`201`):** kaydedilen sipariş, sunucunun eklediği `id` ve `createdAt` alanlarıyla birlikte döner.
+**Başarılı yanıt (`201`):** kaydedilen sipariş `id`, `price`, `status`, `createdAt`, `updatedAt` alanlarıyla döner.
 **Hatalı istek (`400`):** `{ "errors": ["İsim zorunludur."] }` gibi bir hata listesi döner.
 
 ## ⚙️ Yapılandırma
 
-| Ortam değişkeni  | Varsayılan                                      | Açıklama |
-|------------------|-------------------------------------------------|----------|
-| `PORT`           | `3000`                                          | Backend portu |
+| Ortam değişkeni  | Varsayılan | Açıklama |
+|------------------|------------|----------|
+| `PORT`           | `3000` | Backend portu |
 | `ALLOWED_ORIGIN` | `http://localhost:5500`, `http://127.0.0.1:5500` | CORS ile izin verilen frontend adresleri (virgülle ayrılır) |
+| `ADMIN_TOKEN`    | `barista` (sadece geliştirmede) | Barista anahtarı. `NODE_ENV=production` iken ayarlanmazsa sunucu başlamaz |
+| `DB_PATH`        | `backend/orders.db` | SQLite dosyasının yolu |
 
-Canlıya alırken `frontend/script.js` içindeki `senin-canli-api-adresin.com` yer tutucusunu gerçek API adresiyle değiştirin ve backend'i `ALLOWED_ORIGIN` ile başlatın.
+Canlıya alırken `frontend/config.js` içindeki `senin-canli-api-adresin.com` yer tutucusunu gerçek API adresiyle değiştirin; backend'i `ALLOWED_ORIGIN` ve güçlü bir `ADMIN_TOKEN` ile başlatın.
 
 ## ⚠️ Bilinen Sınırlamalar
 
-- Veri bir JSON dosyasında tutulur; gerçek bir veritabanı yoktur.
-- Kimlik doğrulama yoktur: `GET /api/orders` tüm siparişleri herkese gösterir.
-- Sipariş silme/güncelleme ve sipariş durumu takibi yoktur.
+- Yönetici girişi tek bir paylaşılan anahtara dayanır; kullanıcı hesabı ve oturum yönetimi yoktur.
+- Müşteri siparişlerini tarayıcısında (localStorage) hatırlar; başka cihazdan görünmez.
+- Durum takibi 5 saniyelik yoklama (polling) ile yapılır, anlık bildirim (WebSocket) yoktur.
+- `node:sqlite` Node'da henüz deneysel olarak işaretlidir.
 
 ## 👤 Geliştiren
 

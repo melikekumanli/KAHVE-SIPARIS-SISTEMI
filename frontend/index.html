@@ -8,42 +8,42 @@
 </head>
 <body>
   <div class="container">
-    <h1>Kahve Siparişi Ver</h1>
+    <h1>☕ Kahve Siparişi Ver</h1>
 
     <form id="orderForm">
       <label>İsim:
         <input type="text" name="name" maxlength="50" required />
       </label>
 
-      <label>Kahve Türü:
-        <select name="type">
-          <option value="Türk Kahvesi">Türk Kahvesi</option>
-          <option value="Latte">Latte</option>
-          <option value="Espresso">Espresso</option>
-        </select>
-      </label>
+      <fieldset>
+        <legend>Kahve Türü:</legend>
+        <div id="typeOptions" class="choices"></div>
+      </fieldset>
 
       <fieldset>
         <legend>Boyut:</legend>
-        <label class="radio"><input type="radio" name="size" value="Küçük" required /> Küçük</label>
-        <label class="radio"><input type="radio" name="size" value="Orta" /> Orta</label>
-        <label class="radio"><input type="radio" name="size" value="Büyük" /> Büyük</label>
+        <div id="sizeOptions" class="choices"></div>
       </fieldset>
 
       <label>Not:
         <textarea name="note" maxlength="200" placeholder="(Opsiyonel)"></textarea>
       </label>
 
-      <button type="submit" id="submitBtn">Gönder</button>
+      <p class="total">Toplam: <strong id="total">-</strong></p>
+
+      <button type="submit" id="submitBtn" disabled>Menü yükleniyor...</button>
       <p id="message" class="message" role="status" aria-live="polite" hidden></p>
     </form>
 
     <hr>
-    <h2>Verilen Siparişler</h2>
-    <p id="emptyInfo" class="empty-info" hidden>Henüz sipariş yok.</p>
-    <ul id="orderList"></ul>
+    <h2>Siparişlerim</h2>
+    <p id="emptyInfo" class="empty-info" hidden>Henüz sipariş vermediniz.</p>
+    <ul id="orderList" class="orders"></ul>
+
+    <p class="footer-link"><a href="admin.html">Barista girişi</a></p>
   </div>
 
+  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
