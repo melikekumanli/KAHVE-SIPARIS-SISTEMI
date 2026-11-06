@@ -1,7 +1,7 @@
 const cors = require('cors');
 const express = require('express');
 const crypto = require('crypto');
-const { STATUSES, validateItem, validateSizes, createMenu } = require('./menu');
+const { STATUSES, validateItem, validateSizes, validateOptions, createMenu } = require('./menu');
 const { validateOrder, validateRange, createOrders } = require('./orders');
 const { createRateLimiter } = require('./rateLimiter');
 const { validateSettings, createSettings } = require('./settings');
@@ -92,6 +92,21 @@ function createApp(db, options) {
     if (errors.length) return res.status(400).json({ errors });
     menu.replaceSizes(sizes);
     res.json(menu.getMenu().sizes);
+  });
+
+  // Süt ve şurup seçenekleri (ek ücret ve tükendi durumu). Gövde: { options: [{ name, extra, available }] }
+  app.put('/api/menu/milks', requireAdmin, (req, res) => {
+    const { errors, options } = validateOptions(req.body, 'Süt');
+    if (errors.length) return res.status(400).json({ errors });
+    menu.replaceMilks(options);
+    res.json(menu.getMenu().milks);
+  });
+
+  app.put('/api/menu/syrups', requireAdmin, (req, res) => {
+    const { errors, options } = validateOptions(req.body, 'Şurup');
+    if (errors.length) return res.status(400).json({ errors });
+    menu.replaceSyrups(options);
+    res.json(menu.getMenu().syrups);
   });
 
   // ---------- Marka ayarları ----------

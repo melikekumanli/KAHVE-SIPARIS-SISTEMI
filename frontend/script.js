@@ -20,11 +20,12 @@ const CART_KEY = "cart";
 const SERVICE_KEY = "service";
 const MAX_SAVED_ORDERS = 20;
 const MAX_QTY = 20;
+const MAX_SYRUPS = 3;
 const POLL_MS = 5000;
 
 let menu = null;
 let tableCount = 0;
-let cart = [];             // [{ type, size, qty }]
+let cart = [];             // [{ type, size, qty, milk, syrups }]
 let categoryFilter = "";   // "" = tümü
 let submitting = false;
 let pollTimer = null;
@@ -77,24 +78,32 @@ function showToast(text) {
   toastTimer = setTimeout(() => { toast.hidden = true; }, 1800);
 }
 
-// --- Fiyat yardımcıları ---
+// --- Menü ve fiyat yardımcıları ---
 const findItem = (name) => menu && menu.items.find((i) => i.name === name);
 const findSize = (name) => menu && menu.sizes.find((s) => s.name === name);
+const findMilk = (name) => menu && menu.milks.find((m) => m.name === name);
+const findSyrup = (name) => menu && menu.syrups.find((s) => s.name === name);
+const defaultMilk = () => menu && menu.milks.find((m) => m.available);
 
+// Sepet satırının birim fiyatı: ürün + boyut + süt + şuruplar (sunucuyla aynı hesap)
 function unitPrice(line) {
   const item = findItem(line.type);
   const size = findSize(line.size);
-  return item && size ? item.price + size.extra : 0;
+  if (!item || !size) return 0;
+  const milk = line.milk ? findMilk(line.milk) : null;
+  const syrups = (line.syrups || []).map(findSyrup).filter(Boolean);
+  return item.price + size.extra + (milk ? milk.extra : 0) + syrups.reduce((sum, s) => sum + s.extra, 0);
 }
+
+// "Büyük · Yulaf sütü · Vanilya, Karamel"
+const lineMeta = (l) => [l.size, l.milk, (l.syrups || []).join(", ")].filter(Boolean).join(" · ");
+const lineKey = (l) => [l.type, l.size, l.milk || "", [...(l.syrups || [])].sort().join("|")].join("\u0000");
 
 const cartTotal = () => cart.reduce((sum, l) => sum + unitPrice(l) * l.qty, 0);
 const cartQty = () => cart.reduce((sum, l) => sum + l.qty, 0);
+const qtyInCart = (itemName) => cart.filter((l) => l.type === itemName).reduce((s, l) => s + l.qty, 0);
 
 // --- Menü ---
-function qtyInCart(itemName) {
-  return cart.filter((l) => l.type === itemName).reduce((s, l) => s + l.qty, 0);
-}
-
 function renderTabs() {
   const categories = [...new Set(menu.items.map((i) => i.category))];
   catTabsEl.innerHTML = "";
@@ -158,22 +167,64 @@ function renderMenu() {
   });
 }
 
-// --- Ürün seçim penceresi (boyut + adet) ---
+// --- Ürün seçim penceresi (boyut, süt, şurup, adet) ---
 let dlgItem = null;
 let dlgQty = 1;
 
-function dlgSize() {
-  const checked = document.querySelector("#dlgSizes input:checked");
-  return findSize(checked ? checked.value : "");
+const dlgChecked = (name) => dialog.querySelector(`input[name="${name}"]:checked`);
+const dlgSyrupInputs = () => [...dialog.querySelectorAll('input[name="dlgSyrup"]')];
+
+// Pencerede şu an seçili olanlar
+function dlgSelection() {
+  const size = findSize(dlgChecked("dlgSize") ? dlgChecked("dlgSize").value : "");
+  const milkInput = dlgChecked("dlgMilk");
+  return {
+    size,
+    milk: milkInput ? milkInput.value : "",
+    // Sunucuyla aynı (alfabetik) sıra: sepet, sipariş ve fişte aynı metin görünür
+    syrups: dlgSyrupInputs().filter((i) => i.checked).map((i) => i.value).sort((a, b) => a.localeCompare(b, "tr")),
+  };
 }
 
 function updateDialogPrice() {
-  const size = dlgSize();
-  const total = dlgItem && size ? (dlgItem.price + size.extra) * dlgQty : 0;
+  const sel = dlgSelection();
+  const unit = dlgItem && sel.size
+    ? unitPrice({ type: dlgItem.name, size: sel.size.name, milk: sel.milk, syrups: sel.syrups })
+    : 0;
+
+  // En fazla MAX_SYRUPS şurup: sınıra ulaşınca seçilmeyenler kapanır
+  const full = sel.syrups.length >= MAX_SYRUPS;
+  dlgSyrupInputs().forEach((input) => {
+    const available = findSyrup(input.value) && findSyrup(input.value).available;
+    input.disabled = !available || (full && !input.checked);
+    input.closest("label").classList.toggle("disabled", input.disabled);
+  });
+
+  // Sütlü içecek için hiç süt mevcut değilse sipariş verilemez
+  const milkBlocked = dlgItem && dlgItem.allowsMilk && menu.milks.length > 0 && !defaultMilk();
+  document.getElementById("dlgMilkNote").hidden = !milkBlocked;
+
   document.getElementById("dlgQty").textContent = dlgQty;
-  document.getElementById("dlgAdd").textContent = `Sepete ekle · ${formatPrice(total)}`;
+  const addBtn = document.getElementById("dlgAdd");
+  addBtn.textContent = `Sepete ekle · ${formatPrice(unit * dlgQty)}`;
+  addBtn.disabled = !!milkBlocked;
   document.getElementById("dlgMinus").disabled = dlgQty <= 1;
   document.getElementById("dlgPlus").disabled = dlgQty >= MAX_QTY;
+}
+
+function optionLabel({ type, name, value, extra, available, checked, onChange }) {
+  const label = makeEl("label", `opt${type === "checkbox" ? " check" : ""}${available ? "" : " disabled"}`);
+  const input = document.createElement("input");
+  input.type = type;
+  input.name = name;
+  input.value = value;
+  input.className = "sr-only";
+  input.checked = checked;
+  input.disabled = !available;
+  input.addEventListener("change", onChange);
+  label.append(input, makeEl("span", "", value));
+  label.appendChild(makeEl("small", "", available ? (extra ? `+${formatPrice(extra)}` : "") : "Tükendi"));
+  return label;
 }
 
 function openDialog(item) {
@@ -197,6 +248,31 @@ function openDialog(item) {
     sizesEl.appendChild(label);
   });
 
+  // Süt tercihi (varsayılan: listedeki ilk mevcut süt)
+  const milkField = document.getElementById("dlgMilkField");
+  const milksEl = document.getElementById("dlgMilks");
+  milksEl.innerHTML = "";
+  milkField.hidden = !(item.allowsMilk && menu.milks.length > 0);
+  if (!milkField.hidden) {
+    const first = defaultMilk();
+    menu.milks.forEach((m) => milksEl.appendChild(optionLabel({
+      type: "radio", name: "dlgMilk", value: m.name, extra: m.extra, available: m.available,
+      checked: !!first && m.name === first.name, onChange: updateDialogPrice,
+    })));
+  }
+
+  // Ek şurup (isteğe bağlı)
+  const syrupField = document.getElementById("dlgSyrupField");
+  const syrupsEl = document.getElementById("dlgSyrups");
+  syrupsEl.innerHTML = "";
+  syrupField.hidden = !(item.allowsSyrup && menu.syrups.length > 0);
+  if (!syrupField.hidden) {
+    menu.syrups.forEach((s) => syrupsEl.appendChild(optionLabel({
+      type: "checkbox", name: "dlgSyrup", value: s.name, extra: s.extra, available: s.available,
+      checked: false, onChange: updateDialogPrice,
+    })));
+  }
+
   updateDialogPrice();
   dialog.showModal();
 }
@@ -209,9 +285,15 @@ dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(
 
 document.getElementById("dlgForm").addEventListener("submit", (e) => {
   e.preventDefault();
-  const size = dlgSize();
-  if (!dlgItem || !size) return;
-  addToCart(dlgItem.name, size.name, dlgQty);
+  const sel = dlgSelection();
+  if (!dlgItem || !sel.size) return;
+  addToCart({
+    type: dlgItem.name,
+    size: sel.size.name,
+    milk: dlgItem.allowsMilk ? sel.milk : "",
+    syrups: dlgItem.allowsSyrup ? sel.syrups : [],
+    qty: dlgQty,
+  });
   dialog.close();
   showToast(`${dlgQty} × ${dlgItem.name} sepete eklendi`);
 });
@@ -219,10 +301,10 @@ document.getElementById("dlgForm").addEventListener("submit", (e) => {
 // --- Sepet ---
 function saveCart() { writeStorage(CART_KEY, cart); }
 
-function addToCart(type, size, qty) {
-  const existing = cart.find((l) => l.type === type && l.size === size);
-  if (existing) existing.qty = Math.min(MAX_QTY, existing.qty + qty);
-  else cart.push({ type, size, qty });
+function addToCart(line) {
+  const existing = cart.find((l) => lineKey(l) === lineKey(line));
+  if (existing) existing.qty = Math.min(MAX_QTY, existing.qty + line.qty);
+  else cart.push({ ...line });
   saveCart();
   renderCart();
   renderMenu();
@@ -231,25 +313,47 @@ function addToCart(type, size, qty) {
 function changeQty(index, delta) {
   const line = cart[index];
   if (!line) return;
-  line.qty += delta;
+  line.qty = Math.min(MAX_QTY, line.qty + delta);
   if (line.qty <= 0) cart.splice(index, 1);
-  line.qty = Math.min(MAX_QTY, line.qty);
   saveCart();
   renderCart();
   renderMenu();
 }
 
-// Menüde olmayan ya da tükenen ürünleri sepetten çıkarır; çıkarılanların adını döner
+// Menüde artık geçerli olmayan satırları/seçenekleri düzeltir. Düzeltmeleri açıklayan metinleri döner.
 function pruneCart() {
-  const removed = [];
-  cart = cart.filter((l) => {
+  const notes = [];
+  const next = [];
+  cart.forEach((l) => {
     const item = findItem(l.type);
-    const ok = item && item.available && findSize(l.size);
-    if (!ok) removed.push(l.type);
-    return ok;
+    if (!item || !item.available || !findSize(l.size)) {
+      notes.push(`${l.type} artık mevcut olmadığı için sepetten çıkarıldı.`);
+      return;
+    }
+    const line = { ...l, milk: l.milk || "", syrups: Array.isArray(l.syrups) ? l.syrups : [] };
+
+    if (!item.allowsMilk || !menu.milks.length) {
+      line.milk = "";
+    } else {
+      const milk = findMilk(line.milk);
+      if (!milk || !milk.available) {
+        const fallback = defaultMilk();
+        if (!fallback) {
+          notes.push(`${l.type} için süt seçeneği tükendiği için sepetten çıkarıldı.`);
+          return;
+        }
+        if (line.milk) notes.push(`${l.type}: ${line.milk} mevcut olmadığı için ${fallback.name} seçildi.`);
+        line.milk = fallback.name;
+      }
+    }
+
+    const valid = line.syrups.filter((s) => item.allowsSyrup && findSyrup(s) && findSyrup(s).available).slice(0, MAX_SYRUPS);
+    if (valid.length !== line.syrups.length) notes.push(`${l.type}: bazı şuruplar mevcut olmadığı için çıkarıldı.`);
+    line.syrups = valid;
+    next.push(line);
   });
-  if (removed.length) saveCart();
-  return [...new Set(removed)];
+  if (notes.length) { cart = next; saveCart(); }
+  return notes;
 }
 
 function renderCart() {
@@ -265,7 +369,10 @@ function renderCart() {
     const li = makeEl("li", "cart-line");
 
     const info = makeEl("div", "cart-info");
-    info.append(makeEl("div", "cart-name", line.type), makeEl("div", "cart-meta", `${line.size} · ${formatPrice(unitPrice(line))}`));
+    info.append(
+      makeEl("div", "cart-name", line.type),
+      makeEl("div", "cart-meta", `${lineMeta(line)} · ${formatPrice(unitPrice(line))}`)
+    );
 
     const stepper = makeEl("div", "stepper small");
     const minus = makeEl("button", "", "−");
@@ -277,8 +384,7 @@ function renderCart() {
     plus.setAttribute("aria-label", `${line.type} adedini artır`);
     plus.disabled = line.qty >= MAX_QTY;
     plus.addEventListener("click", () => changeQty(index, 1));
-    const out = makeEl("output", "", String(line.qty));
-    stepper.append(minus, out, plus);
+    stepper.append(minus, makeEl("output", "", String(line.qty)), plus);
 
     li.append(info, stepper, makeEl("div", "cart-price", formatPrice(unitPrice(line) * line.qty)));
     cartLinesEl.appendChild(li);
@@ -344,8 +450,8 @@ async function loadMenu() {
     tableCount = settingsRes.ok ? Number((await settingsRes.json()).tableCount) || 0 : 0;
 
     if (categoryFilter && !menu.items.some((i) => i.category === categoryFilter)) categoryFilter = "";
-    const removed = pruneCart();
-    if (removed.length) showMessage(`${removed.join(", ")} artık mevcut olmadığı için sepetten çıkarıldı.`, "error");
+    const notes = pruneCart();
+    if (notes.length) showMessage(notes.join(" "), "error");
 
     renderTabs();
     renderMenu();
@@ -378,6 +484,7 @@ function renderSteps(status) {
 }
 
 const serviceLabel = (o) => (o.service === "Masa" ? `Masa ${o.table}` : o.service);
+const itemExtras = (it) => [it.milk, (it.syrups || []).join(" + ")].filter(Boolean).join(" · ");
 
 function renderOrders(orders) {
   listEl.innerHTML = "";
@@ -393,7 +500,12 @@ function renderOrders(orders) {
     );
 
     const items = makeEl("ul", "track-items");
-    order.items.forEach((it) => items.appendChild(makeEl("li", "", `${it.qty} × ${it.name} · ${it.size}`)));
+    order.items.forEach((it) => {
+      const row = makeEl("li", "", `${it.qty} × ${it.name} · ${it.size}`);
+      const extras = itemExtras(it);
+      if (extras) row.appendChild(makeEl("div", "track-opts", extras));
+      items.appendChild(row);
+    });
 
     const time = new Date(order.createdAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
     const meta = [order.name, formatPrice(order.price), time];
@@ -467,7 +579,13 @@ form.addEventListener("submit", async (e) => {
   const data = {
     name,
     note: form.elements.note.value,
-    items: cart.map((l) => ({ type: l.type, size: l.size, qty: l.qty })),
+    items: cart.map((l) => ({
+      type: l.type,
+      size: l.size,
+      qty: l.qty,
+      ...(l.milk ? { milk: l.milk } : {}),
+      ...(l.syrups && l.syrups.length ? { syrups: l.syrups } : {}),
+    })),
     ...(tableCount > 0 ? { service, table: service === "Masa" ? table : undefined } : {}),
   };
 
@@ -499,7 +617,7 @@ form.addEventListener("submit", async (e) => {
       // Sunucu doğrulama hatalarını { errors: [...] } olarak döner
       const body = await response.json().catch(() => ({}));
       showMessage((body.errors && body.errors.join(" ")) || "Sunucu hatası oluştu.", "error");
-      if (response.status === 400) await loadMenu(); // ürün tükenmiş ya da masa sayısı değişmiş olabilir
+      if (response.status === 400) await loadMenu(); // ürün/seçenek tükenmiş ya da masa sayısı değişmiş olabilir
     }
   } catch (error) {
     console.error("İstek hatası:", error);

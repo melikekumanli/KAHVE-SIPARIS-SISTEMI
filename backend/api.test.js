@@ -40,10 +40,12 @@ after(() => stop(server));
 
 // Her testte siparişler temizlenir; menü, boyutlar ve ayarlar varsayılana döner
 beforeEach(() => {
-  db.exec('DELETE FROM orders; DELETE FROM order_items; DELETE FROM menu_items; DELETE FROM sizes; DELETE FROM settings;');
-  db.exec(`INSERT INTO menu_items (name, category, price) VALUES
-    ('Türk Kahvesi','Kahve',60), ('Latte','Kahve',90), ('Çay','Diğer',25);
-    INSERT INTO sizes (name, extra, sort_order) VALUES ('Küçük',0,0), ('Orta',10,1), ('Büyük',20,2);`);
+  db.exec('DELETE FROM orders; DELETE FROM order_items; DELETE FROM menu_items; DELETE FROM sizes; DELETE FROM settings; DELETE FROM milks; DELETE FROM syrups;');
+  db.exec(`INSERT INTO menu_items (name, category, price, allow_milk, allow_syrup) VALUES
+    ('Türk Kahvesi','Kahve',60,0,0), ('Latte','Kahve',90,1,1), ('Çay','Diğer',25,0,0);
+    INSERT INTO sizes (name, extra, sort_order) VALUES ('Küçük',0,0), ('Orta',10,1), ('Büyük',20,2);
+    INSERT INTO milks (name, extra, available, sort_order) VALUES ('Normal süt',0,1,0), ('Yulaf sütü',15,1,1), ('Badem sütü',15,0,2);
+    INSERT INTO syrups (name, extra, available, sort_order) VALUES ('Vanilya',10,1,0), ('Karamel',10,1,1), ('Fındık',10,0,2), ('Çikolata',10,1,3);`);
 });
 
 const post = (body) =>
@@ -175,7 +177,7 @@ test('geçerli sipariş kaydedilir, fiyat sunucuda hesaplanır', async () => {
   assert.equal(order.status, 'Bekliyor');
   assert.equal(order.service, 'Masa');
   assert.equal(order.table, 3);
-  assert.deepEqual(order.items, [{ name: 'Latte', size: 'Orta', qty: 1, unitPrice: 100, lineTotal: 100 }]);
+  assert.deepEqual(order.items, [{ name: 'Latte', size: 'Orta', milk: 'Normal süt', syrups: [], qty: 1, unitPrice: 100, lineTotal: 100 }]);
   assert.match(order.id, /^[0-9a-f-]{36}$/);
 });
 
@@ -455,9 +457,157 @@ test('CSV dışa aktarma: başlıklar, Excel uyumu, formül enjeksiyonu ve tırn
   assert.ok(lines[1].includes('"Ali ""Usta"""'));          // tırnak kaçışı
   assert.ok(lines[1].includes('"\'=1+1"'));                // formül enjeksiyonu engellendi
   assert.ok(lines[1].includes('"Masa 3"'));
-  assert.ok(lines[1].includes('2× Latte (Orta), 1× Çay (Küçük)'));
+  assert.ok(lines[1].includes('2× Latte (Orta, Normal süt), 1× Çay (Küçük)'));
   assert.ok(lines[1].includes('"225"'));
   assert.ok(lines[2].includes('"Paket"') && lines[2].includes('"satır sonu"'));
+});
+
+// ---------- Süt ve şurup seçenekleri ----------
+
+const latteWith = (extra = {}, qty = 1, size = 'Orta') => ({ ...validOrder, items: [{ type: 'Latte', size, qty, ...extra }] });
+
+test('menü süt, şurup ve ürün bayraklarını döner', async () => {
+  const menu = await menuOf();
+  assert.deepEqual(menu.milks.map((m) => [m.name, m.extra, m.available]), [['Normal süt', 0, true], ['Yulaf sütü', 15, true], ['Badem sütü', 15, false]]);
+  assert.deepEqual(menu.syrups.map((s) => s.name), ['Vanilya', 'Karamel', 'Fındık', 'Çikolata']);
+  const flags = Object.fromEntries(menu.items.map((i) => [i.name, [i.allowsMilk, i.allowsSyrup]]));
+  assert.deepEqual(flags, { 'Türk Kahvesi': [false, false], Latte: [true, true], Çay: [false, false] });
+});
+
+test('süt seçilmezse varsayılan süt atanır ve fiyatı değiştirmez', async () => {
+  const order = await placed(latteWith());
+  assert.equal(order.items[0].milk, 'Normal süt');
+  assert.equal(order.price, 100);
+});
+
+test('süt ve şurup ücretleri birim fiyata eklenir', async () => {
+  const oat = await placed(latteWith({ milk: 'Yulaf sütü' }));
+  assert.equal(oat.price, 115); // 90 + 10 (Orta) + 15
+
+  const full = await placed(latteWith({ milk: 'Yulaf sütü', syrups: ['Vanilya', 'Karamel'] }, 2));
+  assert.equal(full.items[0].unitPrice, 135); // 100 + 15 + 10 + 10
+  assert.equal(full.price, 270);
+  assert.deepEqual(full.items[0].syrups, ['Karamel', 'Vanilya']);
+  assert.equal(full.items[0].milk, 'Yulaf sütü');
+});
+
+test('aynı seçenekler (sırası farklı olsa da) birleşir, farklı seçenekler ayrı satır olur', async () => {
+  const order = await placed({
+    ...validOrder,
+    items: [
+      { type: 'Latte', size: 'Orta', qty: 1, syrups: ['Vanilya', 'Karamel'] },
+      { type: 'Latte', size: 'Orta', qty: 2, syrups: ['Karamel', 'Vanilya'] },
+      { type: 'Latte', size: 'Orta', qty: 1, syrups: ['Vanilya'] },
+      { type: 'Latte', size: 'Orta', qty: 1, milk: 'Yulaf sütü' },
+    ],
+  });
+  assert.equal(order.items.length, 3);
+  assert.equal(order.items.find((i) => i.syrups.length === 2).qty, 3);
+});
+
+test('tekrarlanan şurup tek sayılır', async () => {
+  const order = await placed(latteWith({ syrups: ['Vanilya', 'Vanilya', ' Vanilya '] }));
+  assert.deepEqual(order.items[0].syrups, ['Vanilya']);
+  assert.equal(order.price, 110);
+});
+
+test('geçersiz süt ve şurup seçimleri 400 döner', async () => {
+  const cases = {
+    'süt: bilinmeyen': latteWith({ milk: 'Pirinç sütü' }),
+    'süt: tükenmiş': latteWith({ milk: 'Badem sütü' }),
+    'süt: sayı': latteWith({ milk: 5 }),
+    'süt: süt seçeneği olmayan ürün': { ...validOrder, items: [{ type: 'Çay', size: 'Küçük', milk: 'Normal süt' }] },
+    'şurup: bilinmeyen': latteWith({ syrups: ['Karpuz'] }),
+    'şurup: tükenmiş': latteWith({ syrups: ['Fındık'] }),
+    'şurup: 4 tane': latteWith({ syrups: ['Vanilya', 'Karamel', 'Çikolata', 'Fındık'] }),
+    'şurup: dizi değil': latteWith({ syrups: 'Vanilya' }),
+    'şurup: öğe sayı': latteWith({ syrups: [1] }),
+    'şurup: şurup seçeneği olmayan ürün': { ...validOrder, items: [{ type: 'Türk Kahvesi', size: 'Küçük', syrups: ['Vanilya'] }] },
+  };
+  for (const [label, body] of Object.entries(cases)) {
+    const res = await post(body);
+    assert.equal(res.status, 400, label);
+    assert.ok(Array.isArray((await res.json()).errors), label);
+  }
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM orders').get().n, 0);
+});
+
+test('3 şuruba kadar izin verilir', async () => {
+  const order = await placed(latteWith({ syrups: ['Vanilya', 'Karamel', 'Çikolata'] }));
+  assert.equal(order.items[0].syrups.length, 3);
+  assert.equal(order.items[0].unitPrice, 130);
+});
+
+test('yönetici süt listesini günceller: fiyat, tükendi ve doğrulama', async () => {
+  const put = (opts) => adminFetch('/api/menu/milks', 'PUT', { options: opts });
+  const ok = await put([{ name: 'Normal süt', extra: 0 }, { name: 'Yulaf sütü', extra: 20 }, { name: 'Badem sütü', extra: 15, available: true }]);
+  assert.equal(ok.status, 200);
+  assert.deepEqual((await ok.json()).map((m) => [m.name, m.extra, m.available]), [['Normal süt', 0, true], ['Yulaf sütü', 20, true], ['Badem sütü', 15, true]]);
+
+  assert.equal((await placed(latteWith({ milk: 'Yulaf sütü' }))).price, 120); // yeni fiyat
+  assert.equal((await post(latteWith({ milk: 'Badem sütü' }))).status, 201);   // tükenmişti, artık açık
+
+  await put([{ name: 'Normal süt', extra: 0, available: false }]);
+  assert.equal((await post(latteWith())).status, 400); // varsayılan süt tükendi
+
+  const bad = [
+    { options: 'x' },
+    { options: [{ name: '', extra: 0 }] },
+    { options: [{ name: 'A', extra: -1 }] },
+    { options: [{ name: 'A', extra: 1.5 }] },
+    { options: [{ name: 'A', extra: 0 }, { name: 'A', extra: 0 }] },
+    { options: [{ name: 'A', extra: 0, available: 'evet' }] },
+    { options: Array.from({ length: 13 }, (_, i) => ({ name: 'S' + i, extra: 0 })) },
+    {},
+  ];
+  for (const body of bad) assert.equal((await adminFetch('/api/menu/milks', 'PUT', body)).status, 400, JSON.stringify(body).slice(0, 50));
+});
+
+test('yönetici şurup listesini günceller; boş liste kabul edilir', async () => {
+  const ok = await adminFetch('/api/menu/syrups', 'PUT', { options: [{ name: 'Lavanta', extra: 12 }, { name: 'Vanilya', extra: 10, available: false }] });
+  assert.equal(ok.status, 200);
+  assert.equal((await post(latteWith({ syrups: ['Lavanta'] }))).status, 201);
+  assert.equal((await post(latteWith({ syrups: ['Vanilya'] }))).status, 400); // tükendi
+  assert.equal((await post(latteWith({ syrups: ['Karamel'] }))).status, 400); // listeden çıktı
+
+  assert.equal((await adminFetch('/api/menu/syrups', 'PUT', { options: [] })).status, 200);
+  assert.deepEqual((await menuOf()).syrups, []);
+});
+
+test('süt ve şurup yönetim uçları anahtarsız 401 döner', async () => {
+  for (const url of ['/api/menu/milks', '/api/menu/syrups']) {
+    const res = await fetch(base + url, { method: 'PUT', headers: JSON_HEADERS, body: '{"options":[]}' });
+    assert.equal(res.status, 401, url);
+  }
+});
+
+test('ürün için süt/şurup seçeneği açılıp kapatılabilir', async () => {
+  const tea = (await menuOf()).items.find((i) => i.name === 'Çay');
+  const withSyrup = { ...validOrder, items: [{ type: 'Çay', size: 'Küçük', syrups: ['Vanilya'] }] };
+  assert.equal((await post(withSyrup)).status, 400);
+
+  const res = await adminFetch('/api/menu/items/' + tea.id, 'PATCH', { allowsSyrup: true });
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).allowsSyrup, true);
+  assert.equal((await post(withSyrup)).status, 201);
+
+  assert.equal((await adminFetch('/api/menu/items/' + tea.id, 'PATCH', { allowsMilk: 'evet' })).status, 400);
+
+  const created = await (await adminFetch('/api/menu/items', 'POST', { name: 'Mocha', price: 95, allowsMilk: true, allowsSyrup: true })).json();
+  assert.deepEqual([created.allowsMilk, created.allowsSyrup], [true, true]);
+});
+
+test('rapor süt ve şurup tercihlerini sayar; CSV seçenekleri içerir', async () => {
+  await placed(latteWith({ milk: 'Yulaf sütü', syrups: ['Vanilya', 'Karamel'] }, 2));
+  await placed(latteWith({ syrups: ['Vanilya'] }));
+
+  const r = await (await adminFetch('/api/reports?' + todayRange())).json();
+  assert.deepEqual(r.milks, [{ name: 'Yulaf sütü', qty: 2 }, { name: 'Normal süt', qty: 1 }]);
+  assert.deepEqual(r.syrups, [{ name: 'Vanilya', qty: 3 }, { name: 'Karamel', qty: 2 }]);
+
+  const csv = Buffer.from(await (await adminFetch('/api/reports/orders.csv?' + todayRange())).arrayBuffer()).subarray(3).toString('utf8');
+  assert.ok(csv.includes('2× Latte (Orta, Yulaf sütü, Karamel + Vanilya)'));
+  assert.ok(csv.includes('1× Latte (Orta, Normal süt, Vanilya)'));
 });
 
 // ---------- Eski veritabanı yükseltme ----------
@@ -489,6 +639,48 @@ test('eski (tek ürünlü) veritabanı sepet yapısına sorunsuz yükseltilir', 
     const again = openDb(file);
     assert.equal(again.prepare('SELECT COUNT(*) n FROM order_items').get().n, 1);
     again.close();
+  } finally {
+    for (const ext of ['', '-wal', '-shm']) fs.rmSync(file + ext, { force: true });
+  }
+});
+
+test('seçenek özelliğinden önceki veritabanı yükseltilir: bilinen kahveler için süt/şurup açılır', () => {
+  const file = path.join(os.tmpdir(), 'kahve-secenek-' + process.pid + '.db');
+  try {
+    const old = new DatabaseSync(file);
+    old.exec(`
+      CREATE TABLE orders (id TEXT PRIMARY KEY, name TEXT NOT NULL, type TEXT NOT NULL DEFAULT '', size TEXT NOT NULL DEFAULT '',
+        note TEXT NOT NULL DEFAULT '', price INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'Bekliyor',
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL, number INTEGER, service TEXT NOT NULL DEFAULT '', table_no INTEGER);
+      CREATE TABLE order_items (id INTEGER PRIMARY KEY AUTOINCREMENT, order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        name TEXT NOT NULL, size TEXT NOT NULL, qty INTEGER NOT NULL, unit_price INTEGER NOT NULL);
+      CREATE TABLE menu_items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, category TEXT NOT NULL DEFAULT 'Kahve',
+        price INTEGER NOT NULL, available INTEGER NOT NULL DEFAULT 1);
+      INSERT INTO menu_items (name, category, price) VALUES ('Latte','Kahve',90), ('Espresso','Kahve',70), ('Türk Kahvesi','Kahve',60), ('Çay','Diğer',25), ('Özel Karışım','Kahve',99);
+      INSERT INTO orders VALUES ('x','Eski','','','',200,'Hazır','2026-01-01T10:00:00.000Z','2026-01-01T10:00:00.000Z',1,'Masa',4);
+      INSERT INTO order_items (order_id, name, size, qty, unit_price) VALUES ('x','Latte','Orta',2,100);`);
+    old.close();
+
+    const upgraded = openDb(file);
+    const flags = Object.fromEntries(upgraded.prepare('SELECT name, allow_milk, allow_syrup FROM menu_items').all().map((r) => [r.name, [r.allow_milk, r.allow_syrup]]));
+    assert.deepEqual(flags, { Latte: [1, 1], Espresso: [0, 1], 'Türk Kahvesi': [0, 0], Çay: [0, 0], 'Özel Karışım': [0, 0] });
+
+    const item = upgraded.prepare('SELECT * FROM order_items').get();
+    assert.equal(item.milk, '');
+    assert.equal(item.syrups, '[]');
+    assert.equal(item.qty, 2);
+
+    assert.ok(upgraded.prepare('SELECT COUNT(*) n FROM milks').get().n >= 3);
+    assert.ok(upgraded.prepare('SELECT COUNT(*) n FROM syrups').get().n >= 3);
+    upgraded.close();
+
+    // sonraki açılışlarda bayraklar tekrar ezilmez: barista kapattığı seçenek kapalı kalır
+    const again = openDb(file);
+    again.prepare("UPDATE menu_items SET allow_milk = 0 WHERE name = 'Latte'").run();
+    again.close();
+    const third = openDb(file);
+    assert.equal(third.prepare("SELECT allow_milk FROM menu_items WHERE name = 'Latte'").get().allow_milk, 0);
+    third.close();
   } finally {
     for (const ext of ['', '-wal', '-shm']) fs.rmSync(file + ext, { force: true });
   }

@@ -65,7 +65,9 @@ function formatDateTime(iso) {
 const formatMoney = (n) => `${Number(n).toLocaleString("tr-TR")} ₺`;
 const orderLabel = (o) => (o.number ? `#${o.number}` : "Sipariş");
 const serviceLabel = (o) => (o.service === "Masa" ? `Masa ${o.table}` : o.service);
-const itemsText = (o) => o.items.map((i) => `${i.qty}× ${i.name} (${i.size})`).join(", ");
+const itemExtras = (i) => [i.milk, (i.syrups || []).join(" + ")].filter(Boolean).join(", ");
+const itemText = (i) => `${i.qty}× ${i.name} (${[i.size, itemExtras(i)].filter(Boolean).join(", ")})`;
+const itemsText = (o) => o.items.map(itemText).join(", ");
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
@@ -163,7 +165,12 @@ function buildReceipt(order) {
     el("hr"),
     line("Müşteri", order.name),
     el("hr"),
-    ...order.items.map((i) => line(`${i.qty}× ${i.name} (${i.size})`, `${i.lineTotal} TL`)),
+    ...order.items.flatMap((i) => {
+      const rows = [line(`${i.qty}× ${i.name} (${i.size})`, `${i.lineTotal} TL`)];
+      const extras = itemExtras(i);
+      if (extras) rows.push(el("div", { className: "sub", textContent: extras }));
+      return rows;
+    }),
     ...(order.note ? [el("div", { className: "note", textContent: `Not: ${order.note}` })] : []),
     el("hr"),
     line("TOPLAM", `${order.price} TL`, "total"),
@@ -208,7 +215,9 @@ function ticket(order) {
       el("span", { className: "ticket-time", textContent: formatDateTime(order.createdAt) })),
     who,
     el("ul", { className: "ticket-items" },
-      ...order.items.map((i) => el("li", {}, el("b", { textContent: `${i.qty}×` }), ` ${i.name} `, el("span", { textContent: `· ${i.size}` })))),
+      ...order.items.map((i) => el("li", {},
+        el("b", { textContent: `${i.qty}×` }), ` ${i.name} `, el("span", { textContent: `· ${i.size}` }),
+        ...(itemExtras(i) ? [el("div", { className: "ticket-opts", textContent: itemExtras(i) })] : [])))),
     ...(order.note ? [el("div", { className: "ticket-note", textContent: `Not: ${order.note}` })] : []),
     el("div", { className: "ticket-total", textContent: formatMoney(order.price) }),
     actions);
@@ -364,7 +373,23 @@ function renderBars(container, values, { showValues = true } = {}) {
   });
 }
 
+function renderPrefs(containerId, list, emptyText) {
+  const box = $(containerId);
+  box.replaceChildren();
+  if (!list.length) box.appendChild(el("li", { className: "empty", textContent: emptyText }));
+  const max = Math.max(1, ...list.map((x) => x.qty));
+  list.forEach((x) => {
+    const fill = el("span", { className: "rank-fill" });
+    fill.style.width = `${Math.round((x.qty / max) * 100)}%`;
+    box.appendChild(el("li", { className: "rank-row" },
+      el("div", { className: "rank-head" }, el("span", { className: "rank-name", textContent: x.name }), el("span", { className: "rank-qty", textContent: `${x.qty} adet` })),
+      el("div", { className: "rank-bar" }, fill)));
+  });
+}
+
 function renderReport(r) {
+  renderPrefs("milkRank", r.milks || [], "Süt seçimi yok.");
+  renderPrefs("syrupRank", r.syrups || [], "Şurup seçimi yok.");
   $("kpiOrders").textContent = r.totals.orders;
   $("kpiRevenue").textContent = formatMoney(r.totals.revenue);
   $("kpiItems").textContent = r.totals.items;
@@ -451,6 +476,7 @@ async function loadMenu() {
   menu = await (await fetch("/api/menu")).json();
   renderItems();
   renderSizes();
+  renderOptions();
   $("categoryList").innerHTML = "";
   [...new Set(menu.items.map((i) => i.category))].forEach((c) => $("categoryList").appendChild(el("option", { value: c })));
 }
@@ -469,13 +495,20 @@ function renderItems() {
     const price = el("input", { type: "number", value: item.price, min: 0, step: 1 });
     price.setAttribute("aria-label", "Fiyat");
     const available = el("input", { type: "checkbox", checked: item.available });
+    const allowsMilk = el("input", { type: "checkbox", checked: item.allowsMilk });
+    const allowsSyrup = el("input", { type: "checkbox", checked: item.allowsSyrup });
 
     list.appendChild(el("div", { className: `editor-row${item.available ? "" : " unavailable"}` },
       el("div", { className: "fields" }, name, category, price),
       el("div", { className: "row-actions" },
-        el("label", { className: "inline-check" }, available, " Serviste (mevcut)"),
+        el("label", { className: "inline-check" }, available, " Serviste"),
+        el("label", { className: "inline-check" }, allowsMilk, " Süt seçeneği"),
+        el("label", { className: "inline-check" }, allowsSyrup, " Şurup seçeneği"),
         button("Kaydet", "btn-primary", () =>
-          updateItem(item.id, { name: name.value, category: category.value, price: price.valueAsNumber, available: available.checked })),
+          updateItem(item.id, {
+            name: name.value, category: category.value, price: price.valueAsNumber,
+            available: available.checked, allowsMilk: allowsMilk.checked, allowsSyrup: allowsSyrup.checked,
+          })),
         button("Sil", "btn-danger", () => deleteItem(item)))));
   });
 }
@@ -501,12 +534,20 @@ async function deleteItem(item) {
 $("addItemForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
-  const data = { name: form.name.value, category: form.category.value, price: form.price.valueAsNumber };
+  const data = {
+    name: form.name.value,
+    category: form.category.value,
+    price: form.price.valueAsNumber,
+    allowsMilk: form.allowsMilk.checked,
+    allowsSyrup: form.allowsSyrup.checked,
+  };
   await attempt("Ürün eklenemedi.", async () => {
     const response = await api("/api/menu/items", { method: "POST", body: JSON.stringify(data) });
     if (!response.ok) return reportFailure(response, "Ürün eklenemedi.");
     form.name.value = "";
     form.price.value = "";
+    form.allowsMilk.checked = false;
+    form.allowsSyrup.checked = false;
     showMessage("Ürün eklendi.", "success");
     await loadMenu();
   });
@@ -539,6 +580,49 @@ $("sizesForm").addEventListener("submit", async (e) => {
     await loadMenu();
   });
 });
+
+// ---------- Süt ve şurup seçenekleri ----------
+const OPTION_KINDS = {
+  milk: { rows: "milkRows", form: "milksForm", add: "addMilkBtn", url: "/api/menu/milks", label: "Süt", placeholder: "Süt adı", list: () => menu.milks },
+  syrup: { rows: "syrupRows", form: "syrupsForm", add: "addSyrupBtn", url: "/api/menu/syrups", label: "Şurup", placeholder: "Şurup adı", list: () => menu.syrups },
+};
+
+function addOptionRow(kind, option = { name: "", extra: 0, available: true }) {
+  const cfg = OPTION_KINDS[kind];
+  const name = el("input", { type: "text", value: option.name, maxLength: 30, placeholder: cfg.placeholder, required: true });
+  name.setAttribute("aria-label", `${cfg.label} adı`);
+  const extra = el("input", { type: "number", value: option.extra, min: 0, step: 1, required: true });
+  extra.setAttribute("aria-label", "Ek ücret (₺)");
+  const available = el("input", { type: "checkbox", checked: option.available });
+  const row = el("div", { className: "fields opt" }, name, extra, el("label", { className: "inline-check" }, available, " Mevcut"));
+  row.appendChild(button("Kaldır", "btn-danger", () => row.remove()));
+  $(cfg.rows).appendChild(row);
+}
+
+function renderOptions() {
+  for (const [kind, cfg] of Object.entries(OPTION_KINDS)) {
+    $(cfg.rows).innerHTML = "";
+    cfg.list().forEach((o) => addOptionRow(kind, o));
+  }
+}
+
+for (const [kind, cfg] of Object.entries(OPTION_KINDS)) {
+  $(cfg.add).addEventListener("click", () => addOptionRow(kind));
+  $(cfg.form).addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const options = [...$(cfg.rows).children].map((row) => ({
+      name: row.querySelector("input[type=text]").value,
+      extra: row.querySelector("input[type=number]").valueAsNumber,
+      available: row.querySelector("input[type=checkbox]").checked,
+    }));
+    await attempt(`${cfg.label} listesi kaydedilemedi.`, async () => {
+      const response = await api(cfg.url, { method: "PUT", body: JSON.stringify({ options }) });
+      if (!response.ok) return reportFailure(response, `${cfg.label} listesi kaydedilemedi.`);
+      showMessage(`${cfg.label} listesi kaydedildi.`, "success");
+      await loadMenu();
+    });
+  });
+}
 
 // ---------- Ayarlar (marka, masa sayısı) ----------
 function updatePreview() {

@@ -4,14 +4,22 @@ const { STATUSES } = require('./menu');
 const MAX_LINES = 20;        // sepette en fazla farklı ürün satırı
 const MAX_QTY = 20;          // bir satırdaki en fazla adet
 const MAX_TOTAL_QTY = 50;    // siparişteki toplam adet
+const MAX_SYRUPS = 3;        // bir içeceğe en fazla şurup
 const MAX_REPORT_DAYS = 93;  // rapor aralığı sınırı
 
 const pad = (n) => String(n).padStart(2, '0');
 const localDateKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
+// "2× Latte (Büyük, Yulaf sütü, Vanilya + Karamel)" biçiminde satır özeti
+function describeLine(l) {
+  const extras = [l.milk, l.syrups && l.syrups.length ? l.syrups.join(' + ') : ''].filter(Boolean).join(', ');
+  const inner = [l.size, extras].filter(Boolean).join(', ');
+  return `${l.qty}× ${l.name} (${inner})`;
+}
+
 // ---------- Doğrulama ----------
 
-// body: { name, note, items: [{ type, size, qty }], service: 'Masa'|'Paket', table }
+// body: { name, note, items: [{ type, size, qty, milk?, syrups?: [] }], service: 'Masa'|'Paket', table }
 function validateOrder(body, { menu, tableCount }) {
   const errors = new Set();
   const b = body || {};
@@ -22,7 +30,7 @@ function validateOrder(body, { menu, tableCount }) {
   else if (name.length > 50) errors.add('İsim en fazla 50 karakter olabilir.');
   if (note.length > 200) errors.add('Not en fazla 200 karakter olabilir.');
 
-  // Sepet satırları: aynı ürün ve boyut birleştirilir
+  // Sepet satırları: aynı ürün, boyut ve seçenekler birleştirilir
   const merged = new Map();
   if (!Array.isArray(b.items) || b.items.length === 0) {
     errors.add('Sepet boş. En az bir ürün ekleyin.');
@@ -31,20 +39,71 @@ function validateOrder(body, { menu, tableCount }) {
   } else {
     for (const raw of b.items) {
       const line = raw && typeof raw === 'object' ? raw : {};
+      let bad = false;
+      const fail = (message) => { errors.add(message); bad = true; };
+
       const item = typeof line.type === 'string' ? menu.findItem(line.type) : null;
       const size = typeof line.size === 'string' ? menu.findSize(line.size) : null;
       const qty = line.qty === undefined ? 1 : line.qty;
 
-      if (!item) errors.add('Sepette menüde olmayan bir ürün var.');
-      else if (!item.available) errors.add(`${item.name} şu an mevcut değil (tükendi).`);
-      if (!size) errors.add('Sepette geçersiz bir boyut var.');
-      if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) errors.add(`Adet 1 ile ${MAX_QTY} arasında olmalıdır.`);
+      if (!item) fail('Sepette menüde olmayan bir ürün var.');
+      else if (!item.available) fail(`${item.name} şu an mevcut değil (tükendi).`);
+      if (!size) fail('Sepette geçersiz bir boyut var.');
+      if (!Number.isInteger(qty) || qty < 1 || qty > MAX_QTY) fail(`Adet 1 ile ${MAX_QTY} arasında olmalıdır.`);
 
-      if (item && item.available && size && Number.isInteger(qty) && qty >= 1 && qty <= MAX_QTY) {
-        const key = `${item.name}\u0000${size.name}`;
+      // Süt: süt seçeneği olan ürünlerde seçilmediyse varsayılan süt kullanılır
+      let milk = null;
+      if (line.milk !== undefined && typeof line.milk !== 'string') fail('Geçersiz süt seçeneği.');
+      else if (item) {
+        const wanted = (line.milk || '').trim();
+        if (item.allowsMilk) {
+          if (!wanted && !menu.defaultMilk() && menu.milkCount() > 0) {
+            // süt listesi dolu ama hiçbiri mevcut değil: sütlü içecek hazırlanamaz
+            fail(`${item.name} için süt seçeneği şu an mevcut değil (tükendi).`);
+          } else {
+            milk = wanted ? menu.findMilk(wanted) : menu.defaultMilk();
+            if (wanted && !milk) fail('Geçersiz süt seçeneği.');
+            else if (milk && !milk.available) fail(`${milk.name} şu an mevcut değil (tükendi).`);
+          }
+        } else if (wanted) {
+          fail(`${item.name} için süt seçeneği yok.`);
+        }
+      }
+
+      // Şurup: isteğe bağlı, en fazla MAX_SYRUPS
+      const syrups = [];
+      const wantedSyrups = line.syrups === undefined ? [] : line.syrups;
+      if (!Array.isArray(wantedSyrups) || wantedSyrups.some((s) => typeof s !== 'string')) {
+        fail('Geçersiz şurup seçimi.');
+      } else if (item) {
+        const unique = [...new Set(wantedSyrups.map((s) => s.trim()).filter(Boolean))];
+        if (unique.length && !item.allowsSyrup) fail(`${item.name} için şurup seçeneği yok.`);
+        else if (unique.length > MAX_SYRUPS) fail(`En fazla ${MAX_SYRUPS} şurup seçilebilir.`);
+        else {
+          for (const syrupName of unique) {
+            const syrup = menu.findSyrup(syrupName);
+            if (!syrup) fail('Geçersiz şurup seçimi.');
+            else if (!syrup.available) fail(`${syrup.name} şurubu şu an mevcut değil (tükendi).`);
+            else syrups.push(syrup);
+          }
+        }
+      }
+
+      if (!bad) {
+        const syrupNames = syrups.map((s) => s.name).sort((x, y) => x.localeCompare(y, 'tr'));
+        const key = [item.name, size.name, milk ? milk.name : '', ...syrupNames].join('\u0000');
         const existing = merged.get(key);
         if (existing) existing.qty += qty;
-        else merged.set(key, { name: item.name, size: size.name, qty, unitPrice: item.price + size.extra });
+        else {
+          merged.set(key, {
+            name: item.name,
+            size: size.name,
+            milk: milk ? milk.name : '',
+            syrups: syrupNames,
+            qty,
+            unitPrice: item.price + size.extra + (milk ? milk.extra : 0) + syrups.reduce((sum, s) => sum + s.extra, 0),
+          });
+        }
       }
     }
   }
@@ -91,13 +150,22 @@ function createOrders(db) {
      VALUES (?, ?, ?, ?, '', ?, ?, 'Bekliyor', ?, ?, ?, ?)`
   );
   const insertItem = db.prepare(
-    'INSERT INTO order_items (order_id, name, size, qty, unit_price) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO order_items (order_id, name, size, milk, syrups, qty, unit_price) VALUES (?, ?, ?, ?, ?, ?, ?)'
   );
   // Sipariş numarası her gün 1'den başlar (sunucunun yerel saatine göre)
   const nextNumber = db.prepare('SELECT COALESCE(MAX(number), 0) + 1 AS n FROM orders WHERE created_at >= ?');
   const selectById = db.prepare('SELECT * FROM orders WHERE id = ?');
   const updateStatus = db.prepare('UPDATE orders SET status = ?, updated_at = ? WHERE id = ?');
   const deleteById = db.prepare('DELETE FROM orders WHERE id = ?');
+
+  const parseSyrups = (text) => {
+    try {
+      const v = JSON.parse(text);
+      return Array.isArray(v) ? v : [];
+    } catch {
+      return [];
+    }
+  };
 
   // Sipariş satırlarına ürün satırlarını ekler (tek sorguyla, parçalar halinde)
   function toOrders(rows) {
@@ -111,6 +179,8 @@ function createOrders(db) {
         itemsByOrder.get(it.order_id).push({
           name: it.name,
           size: it.size,
+          milk: it.milk,
+          syrups: parseSyrups(it.syrups),
           qty: it.qty,
           unitPrice: it.unit_price,
           lineTotal: it.qty * it.unit_price,
@@ -142,13 +212,13 @@ function createOrders(db) {
     const now = new Date();
     const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const total = lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
-    const summary = lines.map((l) => `${l.qty}× ${l.name} (${l.size})`).join(', ').slice(0, 200);
+    const summary = lines.map(describeLine).join(', ').slice(0, 200);
 
     db.exec('BEGIN');
     try {
       const number = nextNumber.get(dayStart.toISOString()).n;
       insertOrder.run(id, number, name, summary, note, total, service, tableNo, now.toISOString(), now.toISOString());
-      lines.forEach((l) => insertItem.run(id, l.name, l.size, l.qty, l.unitPrice));
+      lines.forEach((l) => insertItem.run(id, l.name, l.size, l.milk, JSON.stringify(l.syrups), l.qty, l.unitPrice));
       db.exec('COMMIT');
     } catch (err) {
       db.exec('ROLLBACK');
@@ -184,7 +254,8 @@ function createOrders(db) {
     return toOrders(rows);
   }
 
-  // Rapor: toplamlar, günlük ciro, çok satanlar, saat dağılımı. Günler/saatler sunucunun yerel saatine göredir.
+  // Rapor: toplamlar, günlük ciro, çok satanlar, saat dağılımı, süt/şurup tercihleri.
+  // Günler/saatler sunucunun yerel saatine göredir.
   function report(from, to) {
     const orders = inRange(from, to);
 
@@ -195,8 +266,12 @@ function createOrders(db) {
     const byHour = Array(24).fill(0);
     const byService = { Masa: 0, Paket: 0, Diğer: 0 };
     const products = new Map();
+    const milkCounts = new Map();
+    const syrupCounts = new Map();
     let revenue = 0;
     let itemCount = 0;
+
+    const bump = (map, key, qty) => map.set(key, (map.get(key) || 0) + qty);
 
     for (const o of orders) {
       const created = new Date(o.createdAt);
@@ -211,8 +286,12 @@ function createOrders(db) {
         p.qty += it.qty;
         p.revenue += it.lineTotal;
         products.set(it.name, p);
+        if (it.milk) bump(milkCounts, it.milk, it.qty);
+        it.syrups.forEach((s) => bump(syrupCounts, s, it.qty));
       }
     }
+
+    const ranked = (map) => [...map.entries()].map(([name, qty]) => ({ name, qty })).sort((a, b) => b.qty - a.qty || a.name.localeCompare(b.name, 'tr'));
 
     return {
       from: from.toISOString(),
@@ -227,6 +306,8 @@ function createOrders(db) {
       topItems: [...products.values()].sort((a, b) => b.qty - a.qty || b.revenue - a.revenue).slice(0, 10),
       byHour,
       byService,
+      milks: ranked(milkCounts),
+      syrups: ranked(syrupCounts),
     };
   }
 
@@ -246,7 +327,7 @@ function createOrders(db) {
         `${pad(d.getHours())}:${pad(d.getMinutes())}`,
         o.name,
         o.service === 'Masa' ? `Masa ${o.table}` : o.service,
-        o.items.map((i) => `${i.qty}× ${i.name} (${i.size})`).join(', '),
+        o.items.map(describeLine).join(', '),
         o.note,
         o.price,
         o.status,
@@ -258,4 +339,4 @@ function createOrders(db) {
   return { create, findById, list, setStatus, remove, report, toCsv };
 }
 
-module.exports = { validateOrder, validateRange, createOrders, STATUSES };
+module.exports = { validateOrder, validateRange, createOrders, describeLine, STATUSES };

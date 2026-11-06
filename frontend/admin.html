@@ -136,6 +136,13 @@
           <div class="panel-head"><h2 class="panel-title">Servis türü</h2></div>
           <div class="panel-body"><div id="serviceSplit" class="split"></div></div>
         </div>
+        <div class="panel full">
+          <div class="panel-head"><h2 class="panel-title">Süt ve şurup tercihleri (adet)</h2></div>
+          <div class="panel-body pref-grid">
+            <div><div class="eyebrow" style="margin-bottom:10px">Süt</div><ol id="milkRank" class="rank"></ol></div>
+            <div><div class="eyebrow" style="margin-bottom:10px">Şurup</div><ol id="syrupRank" class="rank"></ol></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -146,11 +153,17 @@
         <div id="itemList"></div>
         <div class="panel-body" style="border-top:1px solid var(--line)">
           <div class="eyebrow" style="margin-bottom:10px">Yeni ürün ekle</div>
-          <form id="addItemForm" class="fields add">
-            <input type="text" name="name" placeholder="Ürün adı" maxlength="40" required aria-label="Ürün adı" />
-            <input type="text" name="category" placeholder="Kategori" maxlength="30" list="categoryList" value="Kahve" aria-label="Kategori" />
-            <input type="number" name="price" placeholder="Fiyat ₺" min="0" step="1" required aria-label="Fiyat" />
-            <button type="submit" class="btn btn-primary">Ekle</button>
+          <form id="addItemForm">
+            <div class="fields add">
+              <input type="text" name="name" placeholder="Ürün adı" maxlength="40" required aria-label="Ürün adı" />
+              <input type="text" name="category" placeholder="Kategori" maxlength="30" list="categoryList" value="Kahve" aria-label="Kategori" />
+              <input type="number" name="price" placeholder="Fiyat ₺" min="0" step="1" required aria-label="Fiyat" />
+              <button type="submit" class="btn btn-primary">Ekle</button>
+            </div>
+            <div class="row-options">
+              <label class="inline-check"><input type="checkbox" name="allowsMilk" /> Süt seçeneği sorulsun</label>
+              <label class="inline-check"><input type="checkbox" name="allowsSyrup" /> Şurup seçeneği sorulsun</label>
+            </div>
           </form>
           <datalist id="categoryList"></datalist>
         </div>
@@ -165,6 +178,34 @@
             <div class="row-actions">
               <button type="button" id="addSizeBtn" class="btn btn-sm">+ Boyut ekle</button>
               <button type="submit" class="btn btn-primary btn-sm">Boyutları kaydet</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2 class="panel-title">Süt seçenekleri</h2></div>
+        <div class="panel-body">
+          <p class="hint" style="margin:0 0 12px">Süt seçeneği açık ürünlerde müşteri bunlardan birini seçer. Listedeki <b>ilk mevcut süt</b> varsayılandır; ek ücreti 0 yapabilirsiniz. Bittiğinde "Mevcut" işaretini kaldırın.</p>
+          <form id="milksForm">
+            <div id="milkRows"></div>
+            <div class="row-actions">
+              <button type="button" id="addMilkBtn" class="btn btn-sm">+ Süt ekle</button>
+              <button type="submit" class="btn btn-primary btn-sm">Süt listesini kaydet</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2 class="panel-title">Ek şuruplar</h2></div>
+        <div class="panel-body">
+          <p class="hint" style="margin:0 0 12px">Şurup seçeneği açık ürünlerde müşteri isteğe bağlı olarak en fazla 3 şurup ekleyebilir. Ek ücret içecek fiyatına eklenir.</p>
+          <form id="syrupsForm">
+            <div id="syrupRows"></div>
+            <div class="row-actions">
+              <button type="button" id="addSyrupBtn" class="btn btn-sm">+ Şurup ekle</button>
+              <button type="submit" class="btn btn-primary btn-sm">Şurup listesini kaydet</button>
             </div>
           </form>
         </div>

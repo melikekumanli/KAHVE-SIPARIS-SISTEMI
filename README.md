@@ -12,7 +12,8 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 
 **Müşteri (`/`)**
 - Kategori sekmeleriyle filtrelenen düzenli bir menü; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
-- **Sepet:** ürüne dokununca boyut ve adet seçilir; tek siparişte birden çok ürün (2 latte + 1 çay). Sepet sayfa yenilense de korunur; tükenen ürünler sepetten otomatik çıkarılır.
+- **Sepet:** ürüne dokununca boyut, **süt tercihi**, **ek şurup** ve adet seçilir; tek siparişte birden çok ürün (2 latte + 1 çay). Sepet sayfa yenilense de korunur; tükenen ürün ya da seçenek sepetten otomatik düzeltilir.
+- **Süt seçenekleri:** Normal, Laktozsuz, Badem, Yulaf, Soya (ek ücretleriyle). **Şuruplar:** Vanilya, Karamel, Fındık, Çikolata, Hindistan cevizi; içecek başına en fazla 3. Fiyat canlı hesaplanır. Seçenekler yalnızca sorulması istenen ürünlerde (Latte, Cappuccino vb.) çıkar; Çay'a süt sorulmaz.
 - **Masa / paket:** müşteri masa numarasını seçer ya da "Paket" der. Masa sayısı panelden ayarlanır (0 yazılırsa seçim kapanır).
 - Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde adım göstergesiyle canlı takip (Alındı → Hazırlanıyor → Hazır).
 - Telefon, tablet ve masaüstünde uyumlu; telefonda alt sepet çubuğu ve alttan açılan ürün penceresi. Girilen ismin hatırlanması, çift gönderim koruması.
@@ -23,8 +24,8 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - **Arşiv:** teslim edilen siparişler panodan çıkar ve "Arşiv" tablosunda saklanır; panel günlerce çalışsa da hızlı kalır.
 - **Fiş:** yazdırmadan önce ekranda **önizleme**; 80 mm termal yazıcıya uygun (kafe adı, sipariş no, masa/paket, ürün satırları, tutar).
 - **Mutfak modu:** büyük yazı ve büyük dokunma alanlarıyla tam ekran sipariş panosu (tablet ya da mutfak ekranı için).
-- **Raporlar:** bugün / dün / son 7 / son 30 gün için sipariş sayısı, ciro, ürün adedi, ortalama sipariş; günlük ciro ve saat dağılımı grafikleri, çok satanlar, masa/paket oranı. **CSV (Excel) olarak indirme.**
-- **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme.
+- **Raporlar:** bugün / dün / son 7 / son 30 gün için sipariş sayısı, ciro, ürün adedi, ortalama sipariş; günlük ciro ve saat dağılımı grafikleri, çok satanlar, masa/paket oranı, **en çok seçilen süt ve şuruplar**. **CSV (Excel) olarak indirme.**
+- **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme. Ürün başına **süt / şurup seçeneği açma-kapama**; süt ve şurup listelerini (ad, ek ücret, "mevcut") düzenleme. Seçenekler siparişte, panoda, fişte ve CSV'de görünür.
 - **Ayarlar (marka):** kafe adı, slogan ve 4 renk temasından seçim, canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
 **Güvenlik ve güvenilirlik**
@@ -32,7 +33,8 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - Hatalı anahtar denemeleri ve aşırı sipariş gönderimi hız sınırıyla engellenir.
 - Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
 - Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
-- 36 otomatik API testi (sepet doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
+- 49 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
+- Tasarım: tek bir tasarım sisteminde (renk değişkenleri, 4 tema) tutarlı düğmeler, kartlar, gölgeler; marka rengine göre yumuşak arka plan ışığı.
 
 ## 🛠️ Kullanılan Teknolojiler
 
@@ -112,9 +114,11 @@ Tüm veri (siparişler, ürün satırları, menü, ayarlar) `data/orders.db` dos
 | PATCH  | `/api/orders/:id/status`    | Barista | Sipariş durumunu günceller |
 | DELETE | `/api/orders/:id`           | Barista | Siparişi siler |
 | POST   | `/api/menu/items`           | Barista | Ürün ekler |
-| PATCH  | `/api/menu/items/:id`       | Barista | Ürünü günceller (ad, kategori, fiyat, `available`) |
+| PATCH  | `/api/menu/items/:id`       | Barista | Ürünü günceller (ad, kategori, fiyat, `available`, `allowsMilk`, `allowsSyrup`) |
 | DELETE | `/api/menu/items/:id`       | Barista | Ürünü siler |
 | PUT    | `/api/menu/sizes`           | Barista | Boyut listesini değiştirir |
+| PUT    | `/api/menu/milks`           | Barista | Süt listesini değiştirir (`{ options: [{ name, extra, available }] }`) |
+| PUT    | `/api/menu/syrups`          | Barista | Şurup listesini değiştirir (aynı biçim) |
 | GET    | `/api/settings`             | Herkes  | Kafe adı, slogan, tema, masa sayısı |
 | PUT    | `/api/settings`             | Barista | Marka ayarlarını ve masa sayısını günceller |
 | GET    | `/api/reports`              | Barista | Özet rapor: `?from=<ISO>&to=<ISO>` (en fazla 93 gün) |
@@ -128,7 +132,7 @@ Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla
   "name": "Melike",
   "note": "az şekerli",
   "items": [
-    { "type": "Latte", "size": "Orta", "qty": 2 },
+    { "type": "Latte", "size": "Orta", "qty": 2, "milk": "Yulaf sütü", "syrups": ["Vanilya", "Karamel"] },
     { "type": "Çay", "size": "Küçük", "qty": 1 }
   ],
   "service": "Masa",
@@ -137,6 +141,7 @@ Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla
 ```
 - `items`: 1-20 satır, satır başına 1-20 adet, toplam en fazla 50. Ürün ve boyut menüde var olmalı, tükenmiş ürün sipariş edilemez. Aynı ürün+boyut satırları birleştirilir.
 - `service`: `"Masa"` (`table` 1..masa sayısı) ya da `"Paket"`. Masa sayısı 0 ise gerekmez.
+- `milk` yalnızca süt seçeneği açık ürünlerde, `syrups` (en fazla 3) yalnızca şurup seçeneği açık ürünlerde kabul edilir. Süt gönderilmezse listedeki ilk mevcut süt atanır. Birim fiyat = ürün + boyut + süt + şuruplar; aynı seçeneklere sahip satırlar birleştirilir.
 - Fiyat ve durum istemciden alınmaz, sunucu hesaplar. Hatalarda `400` ve `{ "errors": ["..."] }` döner.
 
 ## ⚙️ Yapılandırma (isteğe bağlı)
