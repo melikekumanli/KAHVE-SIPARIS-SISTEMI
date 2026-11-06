@@ -1394,7 +1394,7 @@ label.opt.disabled small { color: var(--danger); }
   position: relative;
   margin-top: -2px;
   padding: 16px 8.2% 40px;
-  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%20preserveAspectRatio%3D%22none%22%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%22h%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ad7d55%22%2F%3E%3Cstop%20offset%3D%22.14%22%20stop-color%3D%22%23cda074%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23e0bc8d%22%2F%3E%3Cstop%20offset%3D%22.86%22%20stop-color%3D%22%23c5986a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%239d6f4b%22%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%22v%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%22.26%22%2F%3E%3Cstop%20offset%3D%22.035%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.92%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%233b2214%22%20stop-opacity%3D%22.34%22%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.3%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%0A%3CclipPath%20id%3D%22c%22%3E%3Cpath%20d%3D%22M0%2C0%20L100%2C0%20L94.2%2C98%20Q93.8%2C100%2091%2C100%20L9%2C100%20Q6.2%2C100%205.8%2C98%20Z%22%2F%3E%3C%2FclipPath%3E%0A%3C%2Fdefs%3E%0A%3Cg%20clip-path%3D%22url(%23c)%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22url(%23h)%22%2F%3E%3Crect%20x%3D%2222%22%20width%3D%229%22%20height%3D%22100%22%20fill%3D%22url(%23g)%22%2F%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22url(%23v)%22%2F%3E%3C%2Fg%3E%0A%3C%2Fsvg%3E") center top / 100% 100% no-repeat;
+  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%20preserveAspectRatio%3D%22none%22%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%22h%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23d9d2c7%22%2F%3E%3Cstop%20offset%3D%22.12%22%20stop-color%3D%22%23f1ece4%22%2F%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%23fffdf9%22%2F%3E%3Cstop%20offset%3D%22.8%22%20stop-color%3D%22%23f0eae1%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23d3cbbf%22%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%22v%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%235a3a22%22%20stop-opacity%3D%22.16%22%2F%3E%3Cstop%20offset%3D%22.035%22%20stop-color%3D%22%235a3a22%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.92%22%20stop-color%3D%22%235a3a22%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235a3a22%22%20stop-opacity%3D%22.2%22%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.7%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%0A%3CclipPath%20id%3D%22c%22%3E%3Cpath%20d%3D%22M0%2C0%20L100%2C0%20L94.2%2C98%20Q93.8%2C100%2091%2C100%20L9%2C100%20Q6.2%2C100%205.8%2C98%20Z%22%2F%3E%3C%2FclipPath%3E%0A%3C%2Fdefs%3E%0A%3Cg%20clip-path%3D%22url(%23c)%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22url(%23h)%22%2F%3E%3Crect%20x%3D%2222%22%20width%3D%229%22%20height%3D%22100%22%20fill%3D%22url(%23g)%22%2F%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20fill%3D%22url(%23v)%22%2F%3E%3C%2Fg%3E%0A%3C%2Fsvg%3E") center top / 100% 100% no-repeat;
 }
 
 /* "Sepetiniz" başlığı bardağın üstüne basılmış gibi */
@@ -1412,7 +1412,7 @@ label.opt.disabled small { color: var(--danger); }
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #4a2a16;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: none;
 }
 
 .cup-head .pill {
@@ -1423,11 +1423,36 @@ label.opt.disabled small { color: var(--danger); }
 
 /* Beyaz etiket: formun tüm içeriği burada, okunabilirlik için düz beyaz */
 .cup-label {
+  /* Bardağın içindeki sütlü kahve: bu bölgede soluk gri yerine kahve tonları kullanılır */
+  --muted: #6b4a31;
+  --text-2: #3a2314;
+  --line: rgba(92, 58, 32, 0.24);
+  --line-strong: rgba(92, 58, 32, 0.4);
+  --surface: #fffaf3;
+  --surface-2: #f4e8d8;
   padding: 18px 16px 16px;
-  background: #fffdfa;
+  background: linear-gradient(180deg, #dcc1a0 0%, #cfaf88 55%, #c8a47c 100%);
   border-radius: 14px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 3px 10px rgba(58, 34, 20, 0.28), inset 0 0 0 1px rgba(122, 74, 43, 0.14);
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.4), inset 0 -3px 8px rgba(92, 58, 32, 0.18), inset 0 0 0 1px rgba(92, 58, 32, 0.22), 0 2px 6px rgba(90, 58, 34, 0.18);
 }
+
+/* Latte zemin üzerinde alanlar kremsi beyaz ve kahve kenarlıklı */
+.cup-label input[type="text"],
+.cup-label input[type="number"],
+.cup-label textarea,
+.cup-label select {
+  background: #fffaf3;
+  border-color: rgba(92, 58, 32, 0.38);
+}
+
+.cup-label label.seg { background: #fffaf3; border-color: rgba(92, 58, 32, 0.38); }
+.cup-label label.seg:has(input:checked) { background: #f6e6d2; }
+.cup-label .stepper { background: #fffaf3; border-color: rgba(92, 58, 32, 0.38); }
+.cup-label .cart-name { color: #2b180c; }
+.cup-label .cart-price,
+.cup-label .total-row strong { color: #2b180c; }
+.cup-label .message.success { background: #edf7ee; }
+.cup-label .message.error { background: #fdeeec; }
 
 .cup-label .cart-empty { padding-top: 0; }
 
