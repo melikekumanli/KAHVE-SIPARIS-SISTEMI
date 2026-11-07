@@ -104,8 +104,16 @@ const cartQty = () => cart.reduce((sum, l) => sum + l.qty, 0);
 const qtyInCart = (itemName) => cart.filter((l) => l.type === itemName).reduce((s, l) => s + l.qty, 0);
 
 // --- Menü ---
+// Bölümler: Sıcak Kahveler, Soğuk Kahveler, (diğer özel kategoriler), en sonda "Diğer"
+const CATEGORY_ORDER = ["Sıcak Kahveler", "Soğuk Kahveler"];
+function orderedCategories() {
+  const rank = (c) => (c === "Diğer" ? 99 : CATEGORY_ORDER.indexOf(c) === -1 ? 50 : CATEGORY_ORDER.indexOf(c));
+  // sort kararlıdır: aynı sıradaki (bilinmeyen) kategoriler menüdeki görünüş sırasında kalır
+  return [...new Set(menu.items.map((i) => i.category))].sort((a, b) => rank(a) - rank(b));
+}
+
 function renderTabs() {
-  const categories = [...new Set(menu.items.map((i) => i.category))];
+  const categories = orderedCategories();
   catTabsEl.innerHTML = "";
   catTabsEl.hidden = categories.length < 2;
 
@@ -127,8 +135,7 @@ function renderTabs() {
 
 function renderMenu() {
   menuListEl.innerHTML = "";
-  const categories = [...new Set(menu.items.map((i) => i.category))]
-    .filter((c) => !categoryFilter || c === categoryFilter);
+  const categories = orderedCategories().filter((c) => !categoryFilter || c === categoryFilter);
 
   if (!categories.length) {
     menuListEl.appendChild(makeEl("p", "empty", "Menüde ürün bulunmuyor."));
@@ -147,6 +154,8 @@ function renderMenu() {
       const button = makeEl("button", `menu-item${item.available ? "" : " disabled"}${inCart ? " in-cart" : ""}`);
       button.type = "button";
       button.dataset.cat = item.category; // kavurma tonu (çekirdek stili) kategoriye göre değişir
+      // Adında "çay" geçen ürünler çekirdek yerine çay bardağı olarak çizilir (stil dosyasında)
+      if (item.name.toLocaleLowerCase("tr-TR").includes("çay")) button.dataset.kind = "cay";
       if (item.recipe && item.recipe.length) {
         button.title = window.Recipe.summary(item.recipe, menu.sizes[0] ? menu.sizes[0].scale : 1);
       }
@@ -449,6 +458,28 @@ function currentService() {
   return checked ? checked.value : "Masa";
 }
 
+// Masa numarası: tarayıcının açılır listesi yerine numaralı hap düğmeler. Seçim gizli select'e yazılır.
+function renderTablePicker(select) {
+  const picker = document.getElementById("tablePicker");
+  picker.innerHTML = "";
+  for (let i = 1; i <= tableCount; i++) {
+    const label = makeEl("label", "table-chip");
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "tablePick";
+    input.value = String(i);
+    input.className = "sr-only";
+    input.checked = select.value === String(i);
+    input.setAttribute("aria-label", `Masa ${i}`);
+    input.addEventListener("change", () => {
+      select.value = String(i);
+      select.dispatchEvent(new Event("change", { bubbles: true })); // seçimi hatırlayan mevcut dinleyiciyi çalıştırır
+    });
+    label.append(input, makeEl("span", "", String(i)));
+    picker.appendChild(label);
+  }
+}
+
 function renderService() {
   serviceField.hidden = tableCount === 0;
   const select = form.elements.table;
@@ -457,6 +488,7 @@ function renderService() {
   select.appendChild(new Option("Masa numarası seçin", ""));
   for (let i = 1; i <= tableCount; i++) select.appendChild(new Option(`Masa ${i}`, String(i)));
   if (saved.table >= 1 && saved.table <= tableCount) select.value = String(saved.table);
+  renderTablePicker(select);
   const radio = form.querySelector(`input[name=service][value="${saved.service === "Paket" ? "Paket" : "Masa"}"]`);
   if (radio) radio.checked = true;
   tableWrap.hidden = currentService() !== "Masa";
@@ -600,7 +632,7 @@ form.addEventListener("submit", async (e) => {
   const table = Number(form.elements.table.value) || null;
   if (tableCount > 0 && service === "Masa" && !table) {
     showMessage("Lütfen masa numaranızı seçin ya da \"Paket\" seçeneğini işaretleyin.", "error");
-    form.elements.table.focus();
+    (document.querySelector("#tablePicker input") || form.elements.name).focus();
     return;
   }
 

@@ -82,6 +82,7 @@ a { color: var(--accent); }
 
 .sr-only {
   position: absolute;
+  min-height: 0;
   width: 1px;
   height: 1px;
   margin: -1px;
@@ -1800,7 +1801,7 @@ label.opt.disabled small { color: var(--danger); }
   transition: transform 0.2s ease;
 }
 
-[data-menu-style="ikonlu"] .menu-item[data-cat="Soğuk Kahve"]::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b98558%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%238a5a37%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234f301b%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(-38%2020%2020)%22%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2220%22%20rx%3D%2215%22%20ry%3D%2210.5%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2216%22%20cy%3D%2215.5%22%20rx%3D%226%22%20ry%3D%222.6%22%20fill%3D%22%23fff%22%20opacity%3D%22.22%22%2F%3E%3Cpath%20d%3D%22M6.5%2021.5%20C11%2016.5%2014%2024%2020%2020%20S28%2015.5%2033.5%2019.5%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.92%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"), linear-gradient(180deg, #fbf3e6, #f2e3cf); }
+[data-menu-style="ikonlu"] .menu-item[data-cat="Soğuk Kahveler"]::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b98558%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%238a5a37%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234f301b%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(-38%2020%2020)%22%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2220%22%20rx%3D%2215%22%20ry%3D%2210.5%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2216%22%20cy%3D%2215.5%22%20rx%3D%226%22%20ry%3D%222.6%22%20fill%3D%22%23fff%22%20opacity%3D%22.22%22%2F%3E%3Cpath%20d%3D%22M6.5%2021.5%20C11%2016.5%2014%2024%2020%2020%20S28%2015.5%2033.5%2019.5%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.92%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"), linear-gradient(180deg, #fbf3e6, #f2e3cf); }
 [data-menu-style="ikonlu"] .menu-item[data-cat="Diğer"]::before { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c8964a%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%2394672a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235a3b14%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(-38%2020%2020)%22%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2220%22%20rx%3D%2215%22%20ry%3D%2210.5%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2216%22%20cy%3D%2215.5%22%20rx%3D%226%22%20ry%3D%222.6%22%20fill%3D%22%23fff%22%20opacity%3D%22.22%22%2F%3E%3Cpath%20d%3D%22M6.5%2021.5%20C11%2016.5%2014%2024%2020%2020%20S28%2015.5%2033.5%2019.5%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.92%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"), linear-gradient(180deg, #fbf3e6, #f2e3cf); }
 [data-menu-style="ikonlu"] .menu-item:hover::before { transform: rotate(22deg) scale(1.06); }
 [data-menu-style="ikonlu"] .menu-item.in-cart::before { box-shadow: inset 0 0 0 2px var(--accent), 0 1px 2px rgba(60, 34, 18, 0.12); }
@@ -1836,8 +1837,8 @@ label.opt.disabled small { color: var(--danger); }
 
 [data-menu-style="cekirdek"] .menu-item:nth-child(even) { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%239c6b47%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%236b4129%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%2338200f%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%22.3%22%20cy%3D%22.2%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.32%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%22.6%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e0a878%22%20stop-opacity%3D%22.28%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(6%2071%2050)%22%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23r)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23h)%22%2F%3E%3Cpath%20d%3D%22M16%2049%20C34%2055%2050%2044%2071%2050%20S108%2056%20126%2051%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.88%22%2F%3E%3Cpath%20d%3D%22M16%2052%20C34%2058%2050%2047%2071%2053%20S108%2059%20126%2054%22%20fill%3D%22none%22%20stroke%3D%22%23c28a5c%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.42%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
 
-[data-menu-style="cekirdek"] .menu-item[data-cat="Soğuk Kahve"] { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b98558%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%238a5a37%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234f301b%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%22.3%22%20cy%3D%22.2%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.32%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%22.6%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e0a878%22%20stop-opacity%3D%22.28%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(-6%2071%2050)%22%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23r)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23h)%22%2F%3E%3Cpath%20d%3D%22M16%2051%20C34%2045%2050%2056%2071%2050%20S108%2044%20126%2049%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.88%22%2F%3E%3Cpath%20d%3D%22M16%2054%20C34%2048%2050%2059%2071%2053%20S108%2047%20126%2052%22%20fill%3D%22none%22%20stroke%3D%22%23c28a5c%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.42%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
-[data-menu-style="cekirdek"] .menu-item[data-cat="Soğuk Kahve"]:nth-child(even) { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b98558%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%238a5a37%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234f301b%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%22.3%22%20cy%3D%22.2%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.32%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%22.6%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e0a878%22%20stop-opacity%3D%22.28%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(6%2071%2050)%22%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23r)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23h)%22%2F%3E%3Cpath%20d%3D%22M16%2049%20C34%2055%2050%2044%2071%2050%20S108%2056%20126%2051%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.88%22%2F%3E%3Cpath%20d%3D%22M16%2052%20C34%2058%2050%2047%2071%2053%20S108%2059%20126%2054%22%20fill%3D%22none%22%20stroke%3D%22%23c28a5c%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.42%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+[data-menu-style="cekirdek"] .menu-item[data-cat="Soğuk Kahveler"] { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b98558%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%238a5a37%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234f301b%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%22.3%22%20cy%3D%22.2%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.32%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%22.6%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e0a878%22%20stop-opacity%3D%22.28%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(-6%2071%2050)%22%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23r)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23h)%22%2F%3E%3Cpath%20d%3D%22M16%2051%20C34%2045%2050%2056%2071%2050%20S108%2044%20126%2049%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.88%22%2F%3E%3Cpath%20d%3D%22M16%2054%20C34%2048%2050%2059%2071%2053%20S108%2047%20126%2052%22%20fill%3D%22none%22%20stroke%3D%22%23c28a5c%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.42%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+[data-menu-style="cekirdek"] .menu-item[data-cat="Soğuk Kahveler"]:nth-child(even) { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23b98558%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%238a5a37%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%234f301b%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%22.3%22%20cy%3D%22.2%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.32%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%22.6%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e0a878%22%20stop-opacity%3D%22.28%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(6%2071%2050)%22%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23r)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23h)%22%2F%3E%3Cpath%20d%3D%22M16%2049%20C34%2055%2050%2044%2071%2050%20S108%2056%20126%2051%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.88%22%2F%3E%3Cpath%20d%3D%22M16%2052%20C34%2058%2050%2047%2071%2053%20S108%2059%20126%2054%22%20fill%3D%22none%22%20stroke%3D%22%23c28a5c%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.42%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
 [data-menu-style="cekirdek"] .menu-item[data-cat="Diğer"] { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c8964a%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%2394672a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235a3b14%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%22.3%22%20cy%3D%22.2%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.32%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%22.6%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e0a878%22%20stop-opacity%3D%22.28%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(-6%2071%2050)%22%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23r)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23h)%22%2F%3E%3Cpath%20d%3D%22M16%2051%20C34%2045%2050%2056%2071%2050%20S108%2044%20126%2049%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.88%22%2F%3E%3Cpath%20d%3D%22M16%2054%20C34%2048%2050%2059%2071%2053%20S108%2047%20126%2052%22%20fill%3D%22none%22%20stroke%3D%22%23c28a5c%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.42%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
 [data-menu-style="cekirdek"] .menu-item[data-cat="Diğer"]:nth-child(even) { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.36%22%20cy%3D%22.28%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23c8964a%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%2394672a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235a3b14%22%2F%3E%3C%2FradialGradient%3E%3CradialGradient%20id%3D%22h%22%20cx%3D%22.3%22%20cy%3D%22.2%22%20r%3D%22.5%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.32%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22r%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%22.6%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e0a878%22%20stop-opacity%3D%22.28%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20transform%3D%22rotate(6%2071%2050)%22%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23b)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23r)%22%2F%3E%3Cellipse%20cx%3D%2271%22%20cy%3D%2250%22%20rx%3D%2266%22%20ry%3D%2244%22%20fill%3D%22url(%23h)%22%2F%3E%3Cpath%20d%3D%22M16%2049%20C34%2055%2050%2044%2071%2050%20S108%2056%20126%2051%22%20fill%3D%22none%22%20stroke%3D%22%231a0d06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.88%22%2F%3E%3Cpath%20d%3D%22M16%2052%20C34%2058%2050%2047%2071%2053%20S108%2059%20126%2054%22%20fill%3D%22none%22%20stroke%3D%22%23c28a5c%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.42%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
 
@@ -1983,3 +1984,121 @@ label.opt.disabled small { color: var(--danger); }
 
 .cat-tabs, .tabs { scrollbar-width: none; }
 .cat-tabs::-webkit-scrollbar, .tabs::-webkit-scrollbar { display: none; }
+
+/* =========================================================
+   Çay: kahve çekirdeği tasarımında değil, Türk usulü ince belli bardak
+   (adında "çay" geçen ürünler; script.js data-kind="cay" ekler)
+   ========================================================= */
+
+/* Şekilli stil: krem kart üzerinde bardak solda, ad ve fiyat sağda */
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"]:nth-child(n) {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20142%20100%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22card%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fffaf1%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23f1e1c9%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22tea%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23d9893a%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%23b0561a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%237c3410%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22sau%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fbf6ee%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23d4c8b6%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22gl%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.75%22%2F%3E%3Cstop%20offset%3D%22.3%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%22.85%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%220%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23fff%22%20stop-opacity%3D%22.35%22%2F%3E%3C%2FlinearGradient%3E%3CclipPath%20id%3D%22g%22%3E%3Cpath%20d%3D%22M18%2022%20C20%2036%2024%2044%2024.5%2052%20C25%2062%2020.5%2072%2021.5%2080%20Q22%2084%2027%2084%20L45%2084%20Q50%2084%2050.5%2080%20C51.5%2072%2047%2062%2047.5%2052%20C48%2044%2052%2036%2054%2022%20Z%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Crect%20x%3D%222%22%20y%3D%224%22%20width%3D%22138%22%20height%3D%2292%22%20rx%3D%2226%22%20fill%3D%22url(%23card)%22%2F%3E%3Crect%20x%3D%222.5%22%20y%3D%224.5%22%20width%3D%22137%22%20height%3D%2291%22%20rx%3D%2225.5%22%20fill%3D%22none%22%20stroke%3D%22%23dcc6a4%22%20stroke-width%3D%221%22%2F%3E%3Cellipse%20cx%3D%2236%22%20cy%3D%2288%22%20rx%3D%2229%22%20ry%3D%226.5%22%20fill%3D%22%23000%22%20opacity%3D%22.12%22%2F%3E%3Cellipse%20cx%3D%2236%22%20cy%3D%2286%22%20rx%3D%2229%22%20ry%3D%226.5%22%20fill%3D%22url(%23sau)%22%2F%3E%3Cellipse%20cx%3D%2236%22%20cy%3D%2284.6%22%20rx%3D%2223%22%20ry%3D%224.3%22%20fill%3D%22%23fff%22%20opacity%3D%22.6%22%2F%3E%3Cellipse%20cx%3D%2236%22%20cy%3D%2285.6%22%20rx%3D%2214%22%20ry%3D%222.6%22%20fill%3D%22%23cfc2ae%22%20opacity%3D%22.7%22%2F%3E%3Cpath%20d%3D%22M18%2022%20C20%2036%2024%2044%2024.5%2052%20C25%2062%2020.5%2072%2021.5%2080%20Q22%2084%2027%2084%20L45%2084%20Q50%2084%2050.5%2080%20C51.5%2072%2047%2062%2047.5%2052%20C48%2044%2052%2036%2054%2022%20Z%22%20fill%3D%22%23eaf2f6%22%20opacity%3D%22.38%22%2F%3E%3Cg%20clip-path%3D%22url(%23g)%22%3E%3Crect%20x%3D%2210%22%20y%3D%2229%22%20width%3D%2252%22%20height%3D%2260%22%20fill%3D%22url(%23tea)%22%2F%3E%3Cellipse%20cx%3D%2236%22%20cy%3D%2229%22%20rx%3D%2218%22%20ry%3D%223.2%22%20fill%3D%22%23eaa457%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2278%22%20width%3D%2252%22%20height%3D%228%22%20fill%3D%22%23fff%22%20opacity%3D%22.28%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2222%22%20width%3D%2252%22%20height%3D%2270%22%20fill%3D%22url(%23gl)%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M18%2022%20C20%2036%2024%2044%2024.5%2052%20C25%2062%2020.5%2072%2021.5%2080%20Q22%2084%2027%2084%20L45%2084%20Q50%2084%2050.5%2080%20C51.5%2072%2047%2062%2047.5%2052%20C48%2044%2052%2036%2054%2022%20Z%22%20fill%3D%22none%22%20stroke%3D%22%23b7c6cf%22%20stroke-width%3D%221.3%22%2F%3E%3Cellipse%20cx%3D%2236%22%20cy%3D%2222%22%20rx%3D%2218%22%20ry%3D%223.2%22%20fill%3D%22%23fff%22%20opacity%3D%22.35%22%20stroke%3D%22%23c3d0d8%22%20stroke-width%3D%221%22%2F%3E%3Cpath%20d%3D%22M29.5%2015%20C25%2011%2033%208%2029.5%203.5%22%20fill%3D%22none%22%20stroke%3D%22%23a5917a%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.5%22%2F%3E%3Cpath%20d%3D%22M39%2015%20C34.5%2011%2042.5%208%2039%203.5%22%20fill%3D%22none%22%20stroke%3D%22%23a5917a%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.4%22%2F%3E%3C%2Fsvg%3E");
+  padding: 0 9% 0 47%;
+  justify-items: start;
+  text-align: left;
+  color: #4a2c18;
+}
+
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"] .menu-item-info { align-items: flex-start; }
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"] .menu-item-name { justify-content: flex-start; color: #4a2c18; text-shadow: none; font-size: 15px; }
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"] .menu-item-price { color: #94572a; text-shadow: none; }
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"] .add-mark { color: #4a2c18; background: rgba(122, 74, 43, 0.1); border-color: rgba(122, 74, 43, 0.32); }
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"]:hover .add-mark,
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"].in-cart .add-mark { color: #3a2214; background: #f0c98d; border-color: #f0c98d; }
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"] .tag-soldout { color: var(--danger); background: var(--danger-bg); border-color: var(--danger-line); margin: 6% 0 0; }
+[data-menu-style="cekirdek"] .menu-item[data-kind="cay"]:focus-visible { border-radius: 26px; }
+
+@media (max-width: 640px) {
+  [data-menu-style="cekirdek"] .menu-item[data-kind="cay"]:nth-child(n) { padding: 0 6% 0 47%; }
+  [data-menu-style="cekirdek"] .menu-item[data-kind="cay"] .menu-item-name { font-size: 14px; }
+}
+
+/* İkonlu stil: çekirdek yerine çay bardağı ikonu */
+[data-menu-style="ikonlu"] .menu-item[data-kind="cay"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22t%22%20x1%3D%220%22%20x2%3D%220%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23d9893a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%238a3d12%22%2F%3E%3C%2FlinearGradient%3E%3CclipPath%20id%3D%22c%22%3E%3Cpath%20d%3D%22M12%208.5%20C13%2014.5%2015.2%2018%2015.4%2021.5%20C15.7%2025.5%2013.4%2028.5%2013.9%2030.6%20Q14.2%2032%2016%2032%20L24%2032%20Q25.8%2032%2026.1%2030.6%20C26.6%2028.5%2024.3%2025.5%2024.6%2021.5%20C24.8%2018%2027%2014.5%2028%208.5%20Z%22%2F%3E%3C%2FclipPath%3E%3C%2Fdefs%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2233.4%22%20rx%3D%2212%22%20ry%3D%222.6%22%20fill%3D%22%23d6cab8%22%2F%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2232.6%22%20rx%3D%2212%22%20ry%3D%222.6%22%20fill%3D%22%23f7f1e6%22%2F%3E%3Cpath%20d%3D%22M12%208.5%20C13%2014.5%2015.2%2018%2015.4%2021.5%20C15.7%2025.5%2013.4%2028.5%2013.9%2030.6%20Q14.2%2032%2016%2032%20L24%2032%20Q25.8%2032%2026.1%2030.6%20C26.6%2028.5%2024.3%2025.5%2024.6%2021.5%20C24.8%2018%2027%2014.5%2028%208.5%20Z%22%20fill%3D%22%23e6f0f5%22%20opacity%3D%22.6%22%2F%3E%3Cg%20clip-path%3D%22url(%23c)%22%3E%3Crect%20x%3D%228%22%20y%3D%2213%22%20width%3D%2224%22%20height%3D%2222%22%20fill%3D%22url(%23t)%22%2F%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2213%22%20rx%3D%228%22%20ry%3D%221.6%22%20fill%3D%22%23eaa457%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M12%208.5%20C13%2014.5%2015.2%2018%2015.4%2021.5%20C15.7%2025.5%2013.4%2028.5%2013.9%2030.6%20Q14.2%2032%2016%2032%20L24%2032%20Q25.8%2032%2026.1%2030.6%20C26.6%2028.5%2024.3%2025.5%2024.6%2021.5%20C24.8%2018%2027%2014.5%2028%208.5%20Z%22%20fill%3D%22none%22%20stroke%3D%22%23a9b9c3%22%20stroke-width%3D%221%22%2F%3E%3Cpath%20d%3D%22M15.6%2015%20C16.3%2019%2017.2%2021.5%2017.1%2024%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.1%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.7%22%2F%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%228.5%22%20rx%3D%228%22%20ry%3D%221.5%22%20fill%3D%22%23fff%22%20opacity%3D%22.35%22%20stroke%3D%22%23b9c7d0%22%20stroke-width%3D%22.8%22%2F%3E%3C%2Fsvg%3E"), linear-gradient(180deg, #fbf3e6, #f2e3cf);
+}
+
+/* =========================================================
+   Masa numarası seçici ve açılır listelerin kapalı hali
+   ========================================================= */
+.table-field { margin: 12px 0 4px; }
+.table-field .field-label { margin-bottom: 8px; }
+
+.table-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+  gap: 8px;
+  max-height: 196px;
+  padding: 3px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+label.table-chip {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--coffee-ink);
+  background: #fffaf3;
+  border: 1px solid rgba(92, 58, 32, 0.38);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(60, 34, 18, 0.14);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.06s ease;
+}
+
+label.table-chip:hover { background: #fff; border-color: rgba(92, 58, 32, 0.6); }
+label.table-chip:active { transform: translateY(1px); }
+
+label.table-chip:has(input:checked) {
+  color: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0) 55%), var(--accent);
+  border-color: var(--accent-strong);
+  box-shadow: 0 4px 10px -3px rgba(var(--accent-rgb), 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+label.table-chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Açılır listelerin kapalı hali (birim seçimi vb.): özel ok, yuvarlak köşe, kahve tonu */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 38px;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20d%3D%22M3%205l4%204%204-4%22%20fill%3D%22none%22%20stroke%3D%22%236b4a31%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px;
+  cursor: pointer;
+}
+
+select:focus { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20d%3D%22M3%205l4%204%204-4%22%20fill%3D%22none%22%20stroke%3D%22%236b4a31%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E"); }
+
+/* =========================================================
+   Sağ sütun (bardak + siparişlerim) sabit: sayfa kayarken sadece menü kayar.
+   Sütun ekrana sığmazsa kendi içinde kayar (kaydırma çubuğu gizli), böylece
+   bardağın altındaki "Siparişi tamamla" düğmesine her zaman ulaşılır.
+   ========================================================= */
+@media (min-width: 981px) {
+  .order-col {
+    position: sticky;
+    top: 12px;
+    align-self: start;
+    /* 12px üst + 24px sayfa alt boşluğu + pay: sayfa sonunda da kapak kesilmez */
+    max-height: calc(100vh - 44px);
+    /* yan boşluk: kapak taşması ve bardak gölgesi kırpılmasın */
+    margin: 0 -16px;
+    padding: 0 16px 10px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .order-col::-webkit-scrollbar { display: none; }
+}
+
+/* Bardak: ekrana daha rahat sığsın */
+.cup-body { padding-bottom: 32px; }
+.cup-label textarea { min-height: 54px; }
+.cup-label .field { margin-bottom: 12px; }

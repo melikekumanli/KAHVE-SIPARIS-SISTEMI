@@ -16,6 +16,9 @@
           <div class="brand-tagline" data-brand-tagline></div>
         </div>
       </div>
+      <div class="header-actions">
+        <a class="btn btn-sm" href="admin.html">Personel girişi</a>
+      </div>
     </div>
   </header>
 
@@ -59,10 +62,12 @@
                 <label class="seg"><input type="radio" name="service" value="Masa" class="sr-only" checked /><span>Masada</span></label>
                 <label class="seg"><input type="radio" name="service" value="Paket" class="sr-only" /><span>Paket</span></label>
               </div>
-              <label id="tableWrap" class="field" style="margin:10px 0 0">
-                <span class="sr-only">Masa numarası</span>
-                <select name="table" aria-label="Masa numarası"></select>
-              </label>
+              <div id="tableWrap" class="table-field">
+                <div id="tableLabel" class="field-label">Masa numarası</div>
+                <div id="tablePicker" class="table-picker" role="radiogroup" aria-labelledby="tableLabel"></div>
+                <!-- Form verisi için gizli seçim kutusu: numara düğmeleri bunu günceller -->
+                <select name="table" class="sr-only" tabindex="-1" aria-hidden="true"></select>
+              </div>
             </fieldset>
 
             <label class="field">
@@ -94,8 +99,6 @@
       </aside>
     </div>
   </main>
-
-  <footer class="app-footer"><a href="admin.html">Personel girişi</a></footer>
 
   <!-- Ürün seçimi: boyut ve adet -->
   <dialog id="itemDialog" class="sheet" aria-labelledby="dlgTitle">

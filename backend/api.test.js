@@ -648,7 +648,10 @@ test('yeni kurulumda zengin bir menü ve geçerli tarifler gelir', () => {
   assert.ok(items.length >= 15, 'en az 15 ürün');
   assert.ok(new Set(items.map((i) => i.name)).size === items.length);
   const categories = new Set(items.map((i) => i.category));
-  assert.ok(categories.has('Kahve') && categories.has('Soğuk Kahve'));
+  assert.deepEqual([...categories], ['Sıcak Kahveler', 'Soğuk Kahveler', 'Diğer']);
+  // bölümler menüde bu sırada gelir (ürünler kategoriye göre ardışık)
+  const order = items.map((i) => i.category);
+  assert.deepEqual([...new Set(order)], ['Sıcak Kahveler', 'Soğuk Kahveler', 'Diğer']);
 
   for (const item of items) {
     const recipe = JSON.parse(item.recipe);
@@ -739,6 +742,39 @@ test('boyutların hacim çarpanı kaydedilir, varsayılan 1 olur, API döner', a
   // sipariş fiyatı çarpandan etkilenmez, sadece ek ücret kullanılır
   const order = await placed({ ...validOrder, items: [{ type: 'Latte', size: 'M', qty: 1 }] });
   assert.equal(order.price, 100);
+});
+
+test('kategori adları bir kez yeniden adlandırılır; sonradan verilen adlar korunur', () => {
+  const file = path.join(os.tmpdir(), 'kahve-kategori-' + process.pid + '.db');
+  try {
+    // eski sürüm: kategoriler "Kahve" / "Soğuk Kahve" / "Diğer" / özel
+    const first = openDb(file);
+    first.exec('PRAGMA user_version = 0'); // yeniden adlandırma henüz yapılmamış gibi
+    first.exec('DELETE FROM menu_items');
+    first.exec(`INSERT INTO menu_items (name, category, price) VALUES
+      ('A','Kahve',10), ('B','Soğuk Kahve',10), ('C','Diğer',10), ('D','Tatlılar',10)`);
+    first.close();
+
+    const upgraded = openDb(file);
+    const cat = (n) => upgraded.prepare('SELECT category FROM menu_items WHERE name = ?').get(n).category;
+    assert.deepEqual(['A', 'B', 'C', 'D'].map(cat), ['Sıcak Kahveler', 'Soğuk Kahveler', 'Diğer', 'Tatlılar']);
+    assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 1);
+
+    // baristanın sonradan "Kahve" demesi korunur: yeniden başlatınca tekrar adlandırılmaz
+    upgraded.prepare("UPDATE menu_items SET category = 'Kahve' WHERE name = 'A'").run();
+    upgraded.close();
+    const again = openDb(file);
+    assert.equal(again.prepare("SELECT category FROM menu_items WHERE name = 'A'").get().category, 'Kahve');
+    again.close();
+  } finally {
+    for (const ext of ['', '-wal', '-shm']) fs.rmSync(file + ext, { force: true });
+  }
+});
+
+test('yeni ürünün varsayılan kategorisi Sıcak Kahveler', async () => {
+  const res = await adminFetch('/api/menu/items', 'POST', { name: 'Test Kahve', price: 50 });
+  assert.equal(res.status, 201);
+  assert.equal((await res.json()).category, 'Sıcak Kahveler');
 });
 
 // ---------- Eski veritabanı yükseltme ----------

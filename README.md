@@ -11,13 +11,13 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 ## 🔧 Özellikler
 
 **Müşteri (`/`)**
-- Kategori sekmeleriyle filtrelenen düzenli bir menü; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
+- Menü bölümlere ayrılır: **Sıcak Kahveler**, **Soğuk Kahveler**, **Diğer** (sekmelerle filtrelenir; eski "Kahve" / "Soğuk Kahve" kategorileri ilk açılışta bir kez otomatik yeniden adlandırılır). Tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
 - **Sepet:** ürüne dokununca boyut, **süt tercihi**, **ek şurup** ve adet seçilir; tek siparişte birden çok ürün (2 latte + 1 çay). Sepet sayfa yenilense de korunur; tükenen ürün ya da seçenek sepetten otomatik düzeltilir.
 - **Geniş kahve menüsü ve içerikler:** 17 ürün (Türk Kahvesi, Espresso, Doppio, Espresso Macchiato, Americano, Cortado, Flat White, Latte, Cappuccino, Latte Macchiato, Mocha, Karamel Macchiato, Filtre Kahve, Affogato, Cold Brew, Iced Latte, Çay). Her kartta içerik özeti (`30 ml Espresso · 180 ml Süt · 30 ml Süt köpüğü`); ürün penceresinde kısa açıklama ve **katmanlı bardak çizimi**, içerik listesi ve toplam hacim. Boyut seçince miktarlar **hacim çarpanıyla** büyür (Büyük = 1.5 kat), seçilen süt adı tarifte görünür.
 - **Süt seçenekleri:** Normal, Laktozsuz, Badem, Yulaf, Soya (ek ücretleriyle). **Şuruplar:** Vanilya, Karamel, Fındık, Çikolata, Hindistan cevizi; içecek başına en fazla 3. Fiyat canlı hesaplanır. Seçenekler yalnızca sorulması istenen ürünlerde (Latte, Cappuccino vb.) çıkar; Çay'a süt sorulmaz.
-- **Masa / paket:** müşteri masa numarasını seçer ya da "Paket" der. Masa sayısı panelden ayarlanır (0 yazılırsa seçim kapanır).
+- **Masa / paket:** müşteri masa numarasını hap biçimli düğmelerden seçer ya da "Paket" der. Masa sayısı panelden ayarlanır (0 yazılırsa seçim kapanır).
 - Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde adım göstergesiyle canlı takip (Alındı → Hazırlanıyor → Hazır).
-- Telefon, tablet ve masaüstünde uyumlu; telefonda alt sepet çubuğu ve alttan açılan ürün penceresi. Girilen ismin hatırlanması, çift gönderim koruması.
+- Telefon, tablet ve masaüstünde uyumlu; telefonda alt sepet çubuğu ve alttan açılan ürün penceresi. Girilen ismin hatırlanması, çift gönderim koruması. Geniş ekranda sağdaki sepet bardağı sabit durur, yalnızca menü kayar.
 
 **Personel paneli (`/admin.html`)**
 - Yönetici anahtarıyla giriş.
@@ -28,14 +28,14 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - **Raporlar:** bugün / dün / son 7 / son 30 gün için sipariş sayısı, ciro, ürün adedi, ortalama sipariş; günlük ciro ve saat dağılımı grafikleri, çok satanlar, masa/paket oranı, **en çok seçilen süt ve şuruplar**. **CSV (Excel) olarak indirme.**
 - **Tarif düzenleme:** her ürün için "Tarif" düğmesiyle kısa açıklama ve içerik listesi (ad, miktar, ml ya da g, alttan üste sıra, yukarı/aşağı taşıma) düzenlenir; canlı bardak önizlemesi vardır. Boyutlara hacim çarpanı verilir.
 - **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme. Ürün başına **süt / şurup seçeneği açma-kapama**; süt ve şurup listelerini (ad, ek ücret, "mevcut") düzenleme. Seçenekler siparişte, panoda, fişte ve CSV'de görünür.
-- **Ayarlar (marka):** kafe adı, slogan, 4 renk teması ve **menü kart stili**: **Klasik**, **Çekirdek ikonlu** (temiz kart, solda küçük çekirdek ikonu) ya da **Çekirdek şekilli** (her ürün gerçek oranlı, çentikli bir kahve çekirdeği; kategoriye göre kavurma tonu, sepettekilerde altın parıltı; satırda 3, telefonda 2 tane), canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
+- **Ayarlar (marka):** kafe adı, slogan, 4 renk teması ve **menü kart stili**: **Klasik**, **Çekirdek ikonlu** (temiz kart, solda küçük çekirdek ikonu) ya da **Çekirdek şekilli** (her ürün gerçek oranlı, çentikli bir kahve çekirdeği; adında "çay" geçen ürünler çekirdek yerine çay bardağı şeklinde çizilir; kategoriye göre kavurma tonu, sepettekilerde altın parıltı; satırda 3, telefonda 2 tane), canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
 **Güvenlik ve güvenilirlik**
 - Barista anahtarı ilk açılışta rastgele üretilir (tahmin edilebilir varsayılan yok).
 - Hatalı anahtar denemeleri ve aşırı sipariş gönderimi hız sınırıyla engellenir.
 - Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
 - Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
-- 56 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
+- 58 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
 - **Kahve bardağı sepet:** "Sepetiniz" paneli kapaklı, beyaza yakın bir kahve bardağı biçiminde (buhar çıkar, gövde aşağı doğru daralır); bardağın içindeki alan sütlü kahve (latte) renginde, form içeriği bu zemin üzerinde okunaklı kahve tonlarıyla gösterilir. Telefonda ve tablette de bardak biçimini korur.
 - **Damlalı üst bar:** koyu kahve renkli, altında büyük bir dalga ve sarkan damlalar (SVG, ekran genişliğine göre üretilir; damlalar yavaşça uzar, bazılarından damlacık düşer; "hareketi azalt" ayarına uyar). Renk temasıyla birlikte değişir.
 - **Tutarlı bileşen sistemi:** hap biçimli düğmeler (kahve ana düğme, kremsi ikincil, yumuşak kırmızı silme), hap sekmeler ve segmentli kontroller, aç/kapa rozetleri, yuvarlak adet düğmeleri; hepsi damlalı üst bar ve bardakla aynı kahve/krem renklerinde.

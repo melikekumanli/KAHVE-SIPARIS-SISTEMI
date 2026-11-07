@@ -10,52 +10,52 @@ const R = (name, amount, unit = 'ml') => ({ name, amount, unit });
 // İlk kurulumda menü boşsa bu varsayılanlar eklenir; sonra barista panelinden değiştirilir.
 // Tarifler standart (Küçük) boy içindir; diğer boyutlarda miktarlar boyutun hacim çarpanıyla ölçeklenir.
 const DEFAULT_ITEMS = [
-  { name: 'Türk Kahvesi', category: 'Kahve', price: 60, milk: 0, syrup: 0,
+  { name: 'Türk Kahvesi', category: 'Sıcak Kahveler', price: 60, milk: 0, syrup: 0,
     description: 'Cezvede pişirilen, kalın telveli geleneksel Türk kahvesi.',
     recipe: [R('Su', 65), R('Türk kahvesi', 7, 'g')] },
-  { name: 'Espresso', category: 'Kahve', price: 70, milk: 0, syrup: 1,
+  { name: 'Espresso', category: 'Sıcak Kahveler', price: 70, milk: 0, syrup: 1,
     description: 'Yoğun ve aromatik, tek shot saf espresso.',
     recipe: [R('Espresso', 30)] },
-  { name: 'Doppio', category: 'Kahve', price: 85, milk: 0, syrup: 1,
+  { name: 'Doppio', category: 'Sıcak Kahveler', price: 85, milk: 0, syrup: 1,
     description: 'Çift shot espresso: daha yoğun ve güçlü.',
     recipe: [R('Espresso', 60)] },
-  { name: 'Espresso Macchiato', category: 'Kahve', price: 85, milk: 1, syrup: 1,
+  { name: 'Espresso Macchiato', category: 'Sıcak Kahveler', price: 85, milk: 1, syrup: 1,
     description: 'Espressonun üzerine bir kaşık süt köpüğü.',
     recipe: [R('Espresso', 30), R('Süt köpüğü', 15)] },
-  { name: 'Americano', category: 'Kahve', price: 75, milk: 1, syrup: 1,
+  { name: 'Americano', category: 'Sıcak Kahveler', price: 75, milk: 1, syrup: 1,
     description: 'Çift shot espressonun sıcak suyla yumuşatılmış hali.',
     recipe: [R('Espresso', 60), R('Sıcak su', 180)] },
-  { name: 'Cortado', category: 'Kahve', price: 85, milk: 1, syrup: 1,
+  { name: 'Cortado', category: 'Sıcak Kahveler', price: 85, milk: 1, syrup: 1,
     description: 'Espresso ve eşit miktarda sıcak süt: yumuşak ama güçlü.',
     recipe: [R('Espresso', 60), R('Süt', 60)] },
-  { name: 'Flat White', category: 'Kahve', price: 95, milk: 1, syrup: 1,
+  { name: 'Flat White', category: 'Sıcak Kahveler', price: 95, milk: 1, syrup: 1,
     description: 'Çift shot espresso ve ipeksi mikro köpüklü süt.',
     recipe: [R('Espresso', 60), R('Süt', 150), R('Süt köpüğü', 10)] },
-  { name: 'Latte', category: 'Kahve', price: 90, milk: 1, syrup: 1,
+  { name: 'Latte', category: 'Sıcak Kahveler', price: 90, milk: 1, syrup: 1,
     description: 'Yumuşak içimli: espresso, buharla ısıtılmış süt ve ince köpük.',
     recipe: [R('Espresso', 30), R('Süt', 180), R('Süt köpüğü', 30)] },
-  { name: 'Cappuccino', category: 'Kahve', price: 90, milk: 1, syrup: 1,
+  { name: 'Cappuccino', category: 'Sıcak Kahveler', price: 90, milk: 1, syrup: 1,
     description: 'Eşit parça espresso, süt ve kalın, kadifemsi süt köpüğü.',
     recipe: [R('Espresso', 30), R('Süt', 90), R('Süt köpüğü', 90)] },
-  { name: 'Latte Macchiato', category: 'Kahve', price: 95, milk: 1, syrup: 1,
+  { name: 'Latte Macchiato', category: 'Sıcak Kahveler', price: 95, milk: 1, syrup: 1,
     description: 'Önce süt, üstüne yavaşça espresso: katmanlı görünüm.',
     recipe: [R('Süt', 180), R('Espresso', 30), R('Süt köpüğü', 30)] },
-  { name: 'Mocha', category: 'Kahve', price: 100, milk: 1, syrup: 1,
+  { name: 'Mocha', category: 'Sıcak Kahveler', price: 100, milk: 1, syrup: 1,
     description: 'Espresso, çikolata sosu ve sütün tatlı uyumu.',
     recipe: [R('Çikolata sosu', 25), R('Espresso', 30), R('Süt', 150), R('Süt köpüğü', 30)] },
-  { name: 'Karamel Macchiato', category: 'Kahve', price: 105, milk: 1, syrup: 1,
+  { name: 'Karamel Macchiato', category: 'Sıcak Kahveler', price: 105, milk: 1, syrup: 1,
     description: 'Süt, espresso ve üzerinde karamel sosu.',
     recipe: [R('Karamel sos', 15), R('Süt', 160), R('Espresso', 30), R('Süt köpüğü', 20)] },
-  { name: 'Filtre Kahve', category: 'Kahve', price: 65, milk: 1, syrup: 1,
+  { name: 'Filtre Kahve', category: 'Sıcak Kahveler', price: 65, milk: 1, syrup: 1,
     description: 'Yavaş demlenmiş, hafif gövdeli günlük filtre kahve.',
     recipe: [R('Filtre kahve', 240)] },
-  { name: 'Affogato', category: 'Kahve', price: 105, milk: 0, syrup: 1,
+  { name: 'Affogato', category: 'Sıcak Kahveler', price: 105, milk: 0, syrup: 1,
     description: 'Vanilyalı dondurmanın üzerine sıcak espresso.',
     recipe: [R('Vanilyalı dondurma', 80, 'g'), R('Espresso', 30)] },
-  { name: 'Cold Brew', category: 'Soğuk Kahve', price: 90, milk: 0, syrup: 1,
+  { name: 'Cold Brew', category: 'Soğuk Kahveler', price: 90, milk: 0, syrup: 1,
     description: '12 saat soğuk demlenmiş, düşük asiditeli ferahlatıcı kahve.',
     recipe: [R('Buz', 90, 'g'), R('Cold brew kahve', 150)] },
-  { name: 'Iced Latte', category: 'Soğuk Kahve', price: 95, milk: 1, syrup: 1,
+  { name: 'Iced Latte', category: 'Soğuk Kahveler', price: 95, milk: 1, syrup: 1,
     description: 'Buz üzerinde soğuk süt ve espresso.',
     recipe: [R('Buz', 100, 'g'), R('Süt', 150), R('Espresso', 30)] },
   { name: 'Çay', category: 'Diğer', price: 25, milk: 0, syrup: 0,
@@ -222,6 +222,13 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
       const ins = db.prepare(`INSERT INTO ${table} (name, extra, available, sort_order) VALUES (?, ?, 1, ?)`);
       defaults.forEach(([name, extra], i) => ins.run(name, extra, i));
     }
+  }
+  // Kategori adları: "Kahve" -> "Sıcak Kahveler", "Soğuk Kahve" -> "Soğuk Kahveler". Yalnızca bir kez
+  // (user_version ile) çalışır; baristanın sonradan verdiği adlar bir daha değiştirilmez.
+  if (db.prepare('PRAGMA user_version').get().user_version < 1) {
+    db.prepare("UPDATE menu_items SET category = 'Sıcak Kahveler' WHERE category = 'Kahve'").run();
+    db.prepare("UPDATE menu_items SET category = 'Soğuk Kahveler' WHERE category = 'Soğuk Kahve'").run();
+    db.exec('PRAGMA user_version = 1');
   }
   return db;
 }

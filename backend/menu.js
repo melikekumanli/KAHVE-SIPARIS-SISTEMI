@@ -44,7 +44,7 @@ function validateItem(body, { partial = false } = {}) {
     data.name = name;
   }
   if (!partial || body.category !== undefined) {
-    const category = cleanText(body.category) || 'Kahve';
+    const category = cleanText(body.category) || 'Sıcak Kahveler';
     if (category.length > 30) errors.push('Kategori en fazla 30 karakter olabilir.');
     data.category = category;
   }
