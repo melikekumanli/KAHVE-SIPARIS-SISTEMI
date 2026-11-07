@@ -12,7 +12,7 @@
 ![Testler](https://img.shields.io/badge/testler-59%20ge%C3%A7ti-2ea44f)
 ![Bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-2-blue)
 
-<img src="docs/screenshots/musteri.png" alt="Müşteri sipariş ekranı" width="900">
+<img src="docs/screenshots/espresso-animasyonu.png" alt="Müşteri sipariş ekranı: çekirdek şekilli menü, sepet bardağı ve espresso çekme animasyonu" width="900">
 
 </div>
 
@@ -51,7 +51,7 @@ Küçük bir kafede sipariş almak için pahalı bir POS sistemine ya da interne
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/tarif.png" alt="Ürün penceresi: içerik tarifi ve seçenekler"><br><sub><b>Ürün penceresi:</b> katmanlı bardak çizimi, ml cinsinden içerik, boyut / süt / şurup seçimi</sub></td>
-    <td width="50%"><img src="docs/screenshots/cekirdek.png" alt="Çekirdek şekilli menü kartları"><br><sub><b>Menü kart stili:</b> Klasik, Çekirdek ikonlu ya da Çekirdek şekilli (Ayarlar'dan seçilir)</sub></td>
+    <td width="50%"><img src="docs/screenshots/musteri.png" alt="Klasik menü kartları ve sepet bardağı"><br><sub><b>Menü kart stili:</b> Klasik (burada), Çekirdek ikonlu ya da Çekirdek şekilli (üstteki görsel); Ayarlar'dan seçilir</sub></td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/panel.png" alt="Personel sipariş panosu"><br><sub><b>Personel paneli:</b> Bekleyen → Hazırlanıyor → Teslime hazır panosu</sub></td>
