@@ -862,7 +862,7 @@ label.seg:has(input:focus-visible) { outline: 2px solid var(--accent); outline-o
 
 .fields { display: grid; grid-template-columns: 2fr 1.2fr 1fr; gap: 8px; }
 .fields.add { grid-template-columns: 2fr 1.2fr 1fr auto; align-items: center; }
-.fields.size { grid-template-columns: 2fr 1fr auto; align-items: center; margin-bottom: 8px; }
+.fields.size { grid-template-columns: 2fr 1fr 1fr auto; align-items: center; margin-bottom: 8px; }
 
 .row-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .row-actions .inline-check { margin-right: auto; }
@@ -1658,4 +1658,125 @@ label.opt.disabled small { color: var(--danger); }
   .fields.opt { grid-template-columns: 1fr auto auto; }
   .fields.opt > :first-child { grid-column: 1 / -1; }
   .row-options { flex-direction: column; align-items: flex-start; }
+}
+
+/* =========================================================
+   Tarifler: içindekiler, katmanlı bardak, boyuta göre miktar
+   ========================================================= */
+
+/* Menü kartı: ad + içerik özeti */
+.menu-item-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+
+.menu-item-sub {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--muted);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.menu-item.disabled .menu-item-sub { text-decoration: none; }
+
+/* Ürün penceresi: açıklama ve içindekiler kutusu */
+.dlg-desc { margin: 0 0 14px; font-size: 14.5px; line-height: 1.5; color: var(--text-2); }
+
+.recipe-box {
+  margin: 0 0 18px;
+  padding: 14px 16px 12px;
+  background: linear-gradient(180deg, #fdf7ee, #f8eee0);
+  border: 1px solid rgba(92, 58, 32, 0.18);
+  border-radius: 14px;
+}
+
+.recipe-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.recipe-head small { font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--coffee-ink); }
+
+.recipe { display: flex; align-items: center; gap: 18px; }
+
+/* Katmanlı bardak: ilk içerik en altta, miktarlar katman yüksekliğini belirler */
+.recipe-glass {
+  flex: none;
+  display: flex;
+  flex-direction: column-reverse;
+  width: 56px;
+  height: 100px;
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid rgba(92, 58, 32, 0.45);
+  border-radius: 6px 6px 18px 18px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7), 0 3px 8px -3px rgba(60, 34, 18, 0.35);
+}
+
+.recipe-layer {
+  flex-basis: 0;
+  min-height: 5px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  transition: flex-grow 0.35s ease;
+}
+
+.recipe-list { flex: 1; display: grid; gap: 7px; min-width: 0; }
+.recipe-list li { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+.recipe-dot { flex: none; width: 13px; height: 13px; border: 1px solid rgba(0, 0, 0, 0.14); border-radius: 4px; }
+.recipe-name { min-width: 0; color: var(--text); }
+.recipe-amount { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--coffee-ink); }
+
+.recipe-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 9px;
+  font-size: 13px;
+  color: var(--muted);
+  border-top: 1px dashed rgba(92, 58, 32, 0.28);
+}
+
+.recipe-total strong { color: var(--coffee-ink); font-variant-numeric: tabular-nums; }
+
+/* Personel: tarif düzenleme penceresi ve boyut başlık satırı */
+#recipeDialog { width: min(640px, calc(100vw - 24px)); }
+
+.fields.ingredient {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) 86px auto auto auto;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.fields.ingredient select { min-width: 0; padding-left: 10px; padding-right: 6px; }
+
+.fields.head { margin-bottom: 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); }
+.fields.size.head { grid-template-columns: 2fr 1fr 1fr auto; }
+.fields.size.head > :last-child { width: 78px; }
+.fields.ingredient.head > :nth-child(n + 4) { width: 38px; }
+
+.icon-btn.small { width: 38px; height: 38px; font-size: 16px; }
+.icon-btn.danger { color: #9f2f22; border-color: rgba(180, 35, 24, 0.3); }
+.icon-btn.danger:hover { background: #fff3f1; }
+
+@media (max-width: 640px) {
+  .recipe { gap: 14px; }
+  .recipe-glass { width: 50px; height: 92px; }
+
+  .fields.size { grid-template-columns: 1fr 1fr auto; }
+  .fields.head { display: none; }
+
+  .fields.ingredient { grid-template-columns: minmax(0, 1fr) 76px auto auto auto; }
+  .fields.ingredient > :first-child { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recipe-layer { transition: none; }
 }

@@ -108,6 +108,11 @@
         <button type="button" id="dlgClose" class="icon-btn" aria-label="Kapat">×</button>
       </div>
       <div class="sheet-body">
+        <p id="dlgDesc" class="dlg-desc" hidden></p>
+        <div id="dlgRecipeBox" class="recipe-box" hidden>
+          <div class="recipe-head"><span>İçindekiler</span><small id="dlgRecipeNote"></small></div>
+          <div id="dlgRecipe"></div>
+        </div>
         <fieldset>
           <legend>Boyut</legend>
           <div id="dlgSizes" class="seg-group"></div>
@@ -144,6 +149,7 @@
   </div>
 
   <script src="brand.js"></script>
+  <script src="recipe.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

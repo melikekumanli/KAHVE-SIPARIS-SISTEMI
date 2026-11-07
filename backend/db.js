@@ -4,18 +4,67 @@ const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
+// Tarif satırı: { name, amount, unit } (unit: 'ml' ya da 'g'). Sıra, bardağa ALTTAN ÜSTE ekleme sırasıdır.
+const R = (name, amount, unit = 'ml') => ({ name, amount, unit });
+
 // İlk kurulumda menü boşsa bu varsayılanlar eklenir; sonra barista panelinden değiştirilir.
-// [ad, kategori, fiyat, süt seçeneği var mı, şurup seçeneği var mı]
+// Tarifler standart (Küçük) boy içindir; diğer boyutlarda miktarlar boyutun hacim çarpanıyla ölçeklenir.
 const DEFAULT_ITEMS = [
-  ['Türk Kahvesi', 'Kahve', 60, 0, 0],
-  ['Espresso', 'Kahve', 70, 0, 1],
-  ['Americano', 'Kahve', 75, 1, 1],
-  ['Latte', 'Kahve', 90, 1, 1],
-  ['Cappuccino', 'Kahve', 90, 1, 1],
-  ['Filtre Kahve', 'Kahve', 65, 1, 1],
-  ['Çay', 'Diğer', 25, 0, 0],
+  { name: 'Türk Kahvesi', category: 'Kahve', price: 60, milk: 0, syrup: 0,
+    description: 'Cezvede pişirilen, kalın telveli geleneksel Türk kahvesi.',
+    recipe: [R('Su', 65), R('Türk kahvesi', 7, 'g')] },
+  { name: 'Espresso', category: 'Kahve', price: 70, milk: 0, syrup: 1,
+    description: 'Yoğun ve aromatik, tek shot saf espresso.',
+    recipe: [R('Espresso', 30)] },
+  { name: 'Doppio', category: 'Kahve', price: 85, milk: 0, syrup: 1,
+    description: 'Çift shot espresso: daha yoğun ve güçlü.',
+    recipe: [R('Espresso', 60)] },
+  { name: 'Espresso Macchiato', category: 'Kahve', price: 85, milk: 1, syrup: 1,
+    description: 'Espressonun üzerine bir kaşık süt köpüğü.',
+    recipe: [R('Espresso', 30), R('Süt köpüğü', 15)] },
+  { name: 'Americano', category: 'Kahve', price: 75, milk: 1, syrup: 1,
+    description: 'Çift shot espressonun sıcak suyla yumuşatılmış hali.',
+    recipe: [R('Espresso', 60), R('Sıcak su', 180)] },
+  { name: 'Cortado', category: 'Kahve', price: 85, milk: 1, syrup: 1,
+    description: 'Espresso ve eşit miktarda sıcak süt: yumuşak ama güçlü.',
+    recipe: [R('Espresso', 60), R('Süt', 60)] },
+  { name: 'Flat White', category: 'Kahve', price: 95, milk: 1, syrup: 1,
+    description: 'Çift shot espresso ve ipeksi mikro köpüklü süt.',
+    recipe: [R('Espresso', 60), R('Süt', 150), R('Süt köpüğü', 10)] },
+  { name: 'Latte', category: 'Kahve', price: 90, milk: 1, syrup: 1,
+    description: 'Yumuşak içimli: espresso, buharla ısıtılmış süt ve ince köpük.',
+    recipe: [R('Espresso', 30), R('Süt', 180), R('Süt köpüğü', 30)] },
+  { name: 'Cappuccino', category: 'Kahve', price: 90, milk: 1, syrup: 1,
+    description: 'Eşit parça espresso, süt ve kalın, kadifemsi süt köpüğü.',
+    recipe: [R('Espresso', 30), R('Süt', 90), R('Süt köpüğü', 90)] },
+  { name: 'Latte Macchiato', category: 'Kahve', price: 95, milk: 1, syrup: 1,
+    description: 'Önce süt, üstüne yavaşça espresso: katmanlı görünüm.',
+    recipe: [R('Süt', 180), R('Espresso', 30), R('Süt köpüğü', 30)] },
+  { name: 'Mocha', category: 'Kahve', price: 100, milk: 1, syrup: 1,
+    description: 'Espresso, çikolata sosu ve sütün tatlı uyumu.',
+    recipe: [R('Çikolata sosu', 25), R('Espresso', 30), R('Süt', 150), R('Süt köpüğü', 30)] },
+  { name: 'Karamel Macchiato', category: 'Kahve', price: 105, milk: 1, syrup: 1,
+    description: 'Süt, espresso ve üzerinde karamel sosu.',
+    recipe: [R('Karamel sos', 15), R('Süt', 160), R('Espresso', 30), R('Süt köpüğü', 20)] },
+  { name: 'Filtre Kahve', category: 'Kahve', price: 65, milk: 1, syrup: 1,
+    description: 'Yavaş demlenmiş, hafif gövdeli günlük filtre kahve.',
+    recipe: [R('Filtre kahve', 240)] },
+  { name: 'Affogato', category: 'Kahve', price: 105, milk: 0, syrup: 1,
+    description: 'Vanilyalı dondurmanın üzerine sıcak espresso.',
+    recipe: [R('Vanilyalı dondurma', 80, 'g'), R('Espresso', 30)] },
+  { name: 'Cold Brew', category: 'Soğuk Kahve', price: 90, milk: 0, syrup: 1,
+    description: '12 saat soğuk demlenmiş, düşük asiditeli ferahlatıcı kahve.',
+    recipe: [R('Buz', 90, 'g'), R('Cold brew kahve', 150)] },
+  { name: 'Iced Latte', category: 'Soğuk Kahve', price: 95, milk: 1, syrup: 1,
+    description: 'Buz üzerinde soğuk süt ve espresso.',
+    recipe: [R('Buz', 100, 'g'), R('Süt', 150), R('Espresso', 30)] },
+  { name: 'Çay', category: 'Diğer', price: 25, milk: 0, syrup: 0,
+    description: 'Taze demlenmiş siyah çay.',
+    recipe: [R('Demli çay', 100)] },
 ];
-const DEFAULT_SIZES = [['Küçük', 0], ['Orta', 10], ['Büyük', 20]];
+
+// [ad, ek ücret, hacim çarpanı]
+const DEFAULT_SIZES = [['Küçük', 0, 1], ['Orta', 10, 1.25], ['Büyük', 20, 1.5]];
 const DEFAULT_MILKS = [['Normal süt', 0], ['Laktozsuz süt', 10], ['Badem sütü', 15], ['Yulaf sütü', 15], ['Soya sütü', 15]];
 const DEFAULT_SYRUPS = [['Vanilya', 10], ['Karamel', 10], ['Fındık', 10], ['Çikolata', 10], ['Hindistan cevizi', 10]];
 
@@ -61,6 +110,7 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
     );
     CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 
+    -- description: kısa tanıtım metni; recipe: JSON [{ name, amount, unit }] (alttan üste)
     CREATE TABLE IF NOT EXISTS menu_items (
       id           INTEGER PRIMARY KEY AUTOINCREMENT,
       name         TEXT NOT NULL UNIQUE,
@@ -68,7 +118,9 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
       price        INTEGER NOT NULL,
       available    INTEGER NOT NULL DEFAULT 1,
       allow_milk   INTEGER NOT NULL DEFAULT 0,
-      allow_syrup  INTEGER NOT NULL DEFAULT 0
+      allow_syrup  INTEGER NOT NULL DEFAULT 0,
+      description  TEXT NOT NULL DEFAULT '',
+      recipe       TEXT NOT NULL DEFAULT '[]'
     );
 
     CREATE TABLE IF NOT EXISTS settings (
@@ -76,10 +128,12 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
       value TEXT NOT NULL
     );
 
+    -- scale: tarifteki miktarların bu boyutta kaç katına çıkacağı (Küçük = 1)
     CREATE TABLE IF NOT EXISTS sizes (
       name       TEXT PRIMARY KEY,
       extra      INTEGER NOT NULL,
-      sort_order INTEGER NOT NULL
+      sort_order INTEGER NOT NULL,
+      scale      REAL NOT NULL DEFAULT 1
     );
 
     -- Süt ve şurup seçenekleri: ek ücret ve "tükendi" durumu (available)
@@ -123,6 +177,29 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
     LEGACY_SYRUP_ITEMS.forEach((n) => set.run(n));
   }
 
+  // Tarif özelliği sonradan eklenen menülerde: bilinen ürünlerin tarifini doldur ve yeni kahveleri ekle.
+  // Yalnızca sütunlar ilk eklenirken çalışır; baristanın sonradan yaptığı değişiklikler ezilmez.
+  const hadRecipes = menuColumns.includes('recipe');
+  if (!menuColumns.includes('description')) db.exec("ALTER TABLE menu_items ADD COLUMN description TEXT NOT NULL DEFAULT ''");
+  if (!hadRecipes) {
+    db.exec("ALTER TABLE menu_items ADD COLUMN recipe TEXT NOT NULL DEFAULT '[]'");
+    const fill = db.prepare("UPDATE menu_items SET description = ?, recipe = ? WHERE name = ? AND recipe = '[]'");
+    const add = db.prepare(
+      'INSERT OR IGNORE INTO menu_items (name, category, price, allow_milk, allow_syrup, description, recipe) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+    DEFAULT_ITEMS.forEach((i) => {
+      fill.run(i.description, JSON.stringify(i.recipe), i.name);
+      add.run(i.name, i.category, i.price, i.milk, i.syrup, i.description, JSON.stringify(i.recipe));
+    });
+  }
+
+  // Boyut hacim çarpanı sonradan eklenen menülerde bilinen boyutlara makul çarpan ver
+  if (!columns('sizes').includes('scale')) {
+    db.exec('ALTER TABLE sizes ADD COLUMN scale REAL NOT NULL DEFAULT 1');
+    const set = db.prepare('UPDATE sizes SET scale = ? WHERE name = ?');
+    DEFAULT_SIZES.forEach(([name, , scale]) => set.run(scale, name));
+  }
+
   // Tek ürünlü eski siparişleri sepet yapısına çevir (ürün satırı olmayanlar için bir satır oluştur)
   db.exec(`
     INSERT INTO order_items (order_id, name, size, qty, unit_price)
@@ -131,12 +208,14 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
   `);
 
   if (db.prepare('SELECT COUNT(*) AS n FROM menu_items').get().n === 0) {
-    const ins = db.prepare('INSERT INTO menu_items (name, category, price, allow_milk, allow_syrup) VALUES (?, ?, ?, ?, ?)');
-    DEFAULT_ITEMS.forEach((item) => ins.run(...item));
+    const ins = db.prepare(
+      'INSERT INTO menu_items (name, category, price, allow_milk, allow_syrup, description, recipe) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+    DEFAULT_ITEMS.forEach((i) => ins.run(i.name, i.category, i.price, i.milk, i.syrup, i.description, JSON.stringify(i.recipe)));
   }
   if (db.prepare('SELECT COUNT(*) AS n FROM sizes').get().n === 0) {
-    const ins = db.prepare('INSERT INTO sizes (name, extra, sort_order) VALUES (?, ?, ?)');
-    DEFAULT_SIZES.forEach(([name, extra], i) => ins.run(name, extra, i));
+    const ins = db.prepare('INSERT INTO sizes (name, extra, sort_order, scale) VALUES (?, ?, ?, ?)');
+    DEFAULT_SIZES.forEach(([name, extra, scale], i) => ins.run(name, extra, i, scale));
   }
   for (const [table, defaults] of [['milks', DEFAULT_MILKS], ['syrups', DEFAULT_SYRUPS]]) {
     if (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n === 0) {
@@ -145,6 +224,15 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
     }
   }
   return db;
+}
+
+function parseRecipe(text) {
+  try {
+    const value = JSON.parse(text);
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
 }
 
 function toItem(row) {
@@ -157,6 +245,8 @@ function toItem(row) {
     available: row.available === 1,
     allowsMilk: row.allow_milk === 1,
     allowsSyrup: row.allow_syrup === 1,
+    description: row.description || '',
+    recipe: parseRecipe(row.recipe),
   };
 }
 

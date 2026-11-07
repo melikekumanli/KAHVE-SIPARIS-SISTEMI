@@ -13,6 +13,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 **Müşteri (`/`)**
 - Kategori sekmeleriyle filtrelenen düzenli bir menü; tükenen ürünler "Tükendi" olarak gösterilir ve seçilemez.
 - **Sepet:** ürüne dokununca boyut, **süt tercihi**, **ek şurup** ve adet seçilir; tek siparişte birden çok ürün (2 latte + 1 çay). Sepet sayfa yenilense de korunur; tükenen ürün ya da seçenek sepetten otomatik düzeltilir.
+- **Geniş kahve menüsü ve içerikler:** 17 ürün (Türk Kahvesi, Espresso, Doppio, Espresso Macchiato, Americano, Cortado, Flat White, Latte, Cappuccino, Latte Macchiato, Mocha, Karamel Macchiato, Filtre Kahve, Affogato, Cold Brew, Iced Latte, Çay). Her kartta içerik özeti (`30 ml Espresso · 180 ml Süt · 30 ml Süt köpüğü`); ürün penceresinde kısa açıklama ve **katmanlı bardak çizimi**, içerik listesi ve toplam hacim. Boyut seçince miktarlar **hacim çarpanıyla** büyür (Büyük = 1.5 kat), seçilen süt adı tarifte görünür.
 - **Süt seçenekleri:** Normal, Laktozsuz, Badem, Yulaf, Soya (ek ücretleriyle). **Şuruplar:** Vanilya, Karamel, Fındık, Çikolata, Hindistan cevizi; içecek başına en fazla 3. Fiyat canlı hesaplanır. Seçenekler yalnızca sorulması istenen ürünlerde (Latte, Cappuccino vb.) çıkar; Çay'a süt sorulmaz.
 - **Masa / paket:** müşteri masa numarasını seçer ya da "Paket" der. Masa sayısı panelden ayarlanır (0 yazılırsa seçim kapanır).
 - Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde adım göstergesiyle canlı takip (Alındı → Hazırlanıyor → Hazır).
@@ -25,6 +26,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - **Fiş:** yazdırmadan önce ekranda **önizleme**; 80 mm termal yazıcıya uygun (kafe adı, sipariş no, masa/paket, ürün satırları, tutar).
 - **Mutfak modu:** büyük yazı ve büyük dokunma alanlarıyla tam ekran sipariş panosu (tablet ya da mutfak ekranı için).
 - **Raporlar:** bugün / dün / son 7 / son 30 gün için sipariş sayısı, ciro, ürün adedi, ortalama sipariş; günlük ciro ve saat dağılımı grafikleri, çok satanlar, masa/paket oranı, **en çok seçilen süt ve şuruplar**. **CSV (Excel) olarak indirme.**
+- **Tarif düzenleme:** her ürün için "Tarif" düğmesiyle kısa açıklama ve içerik listesi (ad, miktar, ml ya da g, alttan üste sıra, yukarı/aşağı taşıma) düzenlenir; canlı bardak önizlemesi vardır. Boyutlara hacim çarpanı verilir.
 - **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme. Ürün başına **süt / şurup seçeneği açma-kapama**; süt ve şurup listelerini (ad, ek ücret, "mevcut") düzenleme. Seçenekler siparişte, panoda, fişte ve CSV'de görünür.
 - **Ayarlar (marka):** kafe adı, slogan ve 4 renk temasından seçim, canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
@@ -33,7 +35,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - Hatalı anahtar denemeleri ve aşırı sipariş gönderimi hız sınırıyla engellenir.
 - Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
 - Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
-- 49 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
+- 55 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
 - **Kahve bardağı sepet:** "Sepetiniz" paneli kapaklı, beyaza yakın bir kahve bardağı biçiminde (buhar çıkar, gövde aşağı doğru daralır); bardağın içindeki alan sütlü kahve (latte) renginde, form içeriği bu zemin üzerinde okunaklı kahve tonlarıyla gösterilir. Telefonda ve tablette de bardak biçimini korur.
 - **Damlalı üst bar:** koyu kahve renkli, altında büyük bir dalga ve sarkan damlalar (SVG, ekran genişliğine göre üretilir; damlalar yavaşça uzar, bazılarından damlacık düşer; "hareketi azalt" ayarına uyar). Renk temasıyla birlikte değişir.
 - **Tutarlı bileşen sistemi:** hap biçimli düğmeler (kahve ana düğme, kremsi ikincil, yumuşak kırmızı silme), hap sekmeler ve segmentli kontroller, aç/kapa rozetleri, yuvarlak adet düğmeleri; hepsi damlalı üst bar ve bardakla aynı kahve/krem renklerinde.
@@ -117,9 +119,9 @@ Tüm veri (siparişler, ürün satırları, menü, ayarlar) `data/orders.db` dos
 | PATCH  | `/api/orders/:id/status`    | Barista | Sipariş durumunu günceller |
 | DELETE | `/api/orders/:id`           | Barista | Siparişi siler |
 | POST   | `/api/menu/items`           | Barista | Ürün ekler |
-| PATCH  | `/api/menu/items/:id`       | Barista | Ürünü günceller (ad, kategori, fiyat, `available`, `allowsMilk`, `allowsSyrup`) |
+| PATCH  | `/api/menu/items/:id`       | Barista | Ürünü günceller (ad, kategori, fiyat, `available`, `allowsMilk`, `allowsSyrup`, `description`, `recipe`) |
 | DELETE | `/api/menu/items/:id`       | Barista | Ürünü siler |
-| PUT    | `/api/menu/sizes`           | Barista | Boyut listesini değiştirir |
+| PUT    | `/api/menu/sizes`           | Barista | Boyut listesini değiştirir (`{ sizes: [{ name, extra, scale }] }`; `scale` hacim çarpanı, varsayılan 1) |
 | PUT    | `/api/menu/milks`           | Barista | Süt listesini değiştirir (`{ options: [{ name, extra, available }] }`) |
 | PUT    | `/api/menu/syrups`          | Barista | Şurup listesini değiştirir (aynı biçim) |
 | GET    | `/api/settings`             | Herkes  | Kafe adı, slogan, tema, masa sayısı |
@@ -146,6 +148,15 @@ Barista uçları `x-admin-token` başlığı ister; yanlışsa `401`, çok fazla
 - `service`: `"Masa"` (`table` 1..masa sayısı) ya da `"Paket"`. Masa sayısı 0 ise gerekmez.
 - `milk` yalnızca süt seçeneği açık ürünlerde, `syrups` (en fazla 3) yalnızca şurup seçeneği açık ürünlerde kabul edilir. Süt gönderilmezse listedeki ilk mevcut süt atanır. Birim fiyat = ürün + boyut + süt + şuruplar; aynı seçeneklere sahip satırlar birleştirilir.
 - Fiyat ve durum istemciden alınmaz, sunucu hesaplar. Hatalarda `400` ve `{ "errors": ["..."] }` döner.
+
+**Tarif biçimi** (`recipe`, ürünün PATCH/POST gövdesinde): en fazla 8 satır, sıra bardağa **alttan üste** ekleme sırasıdır; `description` en fazla 160 karakter.
+```json
+{ "description": "Yumuşak içimli latte.",
+  "recipe": [ { "name": "Espresso", "amount": 30, "unit": "ml" },
+              { "name": "Süt", "amount": 180, "unit": "ml" },
+              { "name": "Süt köpüğü", "amount": 30, "unit": "ml" } ] }
+```
+Miktarlar standart (ilk) boy içindir; `unit` `ml` ya da `g` olabilir. Müşteri ekranında miktarlar seçilen boyun `scale` değeriyle çarpılır (ml 5'in katlarına yuvarlanır). Eski bir veritabanı yükseltilirken bilinen ürünlerin tarifi doldurulur ve yeni kahveler bir kez eklenir; sonradan yaptığınız değişiklikler (silinen ürün, değiştirilen tarif) ezilmez.
 
 ## ⚙️ Yapılandırma (isteğe bağlı)
 

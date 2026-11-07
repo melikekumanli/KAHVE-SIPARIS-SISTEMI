@@ -154,7 +154,13 @@ function renderMenu() {
 
       const nameWrap = makeEl("span", "menu-item-name", item.name);
       if (inCart) nameWrap.appendChild(makeEl("span", "pill", `${inCart} sepette`));
-      button.appendChild(nameWrap);
+      const info = makeEl("span", "menu-item-info");
+      info.appendChild(nameWrap);
+      // Kartta standart (ilk) boydaki içerik özeti: "30 ml Espresso · 180 ml Süt · ..."
+      if (item.recipe && item.recipe.length) {
+        info.appendChild(makeEl("span", "menu-item-sub", window.Recipe.summary(item.recipe, menu.sizes[0] ? menu.sizes[0].scale : 1)));
+      }
+      button.appendChild(info);
       button.appendChild(item.available
         ? makeEl("span", "menu-item-price", formatPrice(item.price))
         : makeEl("span", "tag-soldout", "Tükendi"));
@@ -186,7 +192,22 @@ function dlgSelection() {
   };
 }
 
+// Pencerede tarif kutusu: seçilen boyun hacim çarpanı ve seçilen süt adı yansır
+function renderDialogRecipe() {
+  const box = document.getElementById("dlgRecipeBox");
+  const has = dlgItem && dlgItem.recipe && dlgItem.recipe.length > 0;
+  box.hidden = !has;
+  if (!has) return;
+  const sel = dlgSelection();
+  window.Recipe.render(document.getElementById("dlgRecipe"), dlgItem.recipe, {
+    scale: sel.size ? sel.size.scale : 1,
+    milkName: dlgItem.allowsMilk ? sel.milk : "",
+  });
+  document.getElementById("dlgRecipeNote").textContent = sel.size ? `${sel.size.name} boy` : "";
+}
+
 function updateDialogPrice() {
+  renderDialogRecipe();
   const sel = dlgSelection();
   const unit = dlgItem && sel.size
     ? unitPrice({ type: dlgItem.name, size: sel.size.name, milk: sel.milk, syrups: sel.syrups })
@@ -232,6 +253,9 @@ function openDialog(item) {
   dlgQty = 1;
   document.getElementById("dlgTitle").textContent = item.name;
   document.getElementById("dlgMeta").textContent = `${item.category} · ${formatPrice(item.price)}`;
+  const desc = document.getElementById("dlgDesc");
+  desc.textContent = item.description || "";
+  desc.hidden = !item.description;
 
   const sizesEl = document.getElementById("dlgSizes");
   sizesEl.innerHTML = "";

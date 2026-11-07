@@ -139,7 +139,7 @@ test('ürün silinince menüden kalkar ama eski siparişi bozulmaz', async () =>
 test('boyutlar topluca güncellenir ve doğrulanır', async () => {
   const ok = await adminFetch('/api/menu/sizes', 'PUT', { sizes: [{ name: 'Tek', extra: 0 }, { name: 'Çift', extra: 15 }] });
   assert.equal(ok.status, 200);
-  assert.deepEqual((await menuOf()).sizes, [{ name: 'Tek', extra: 0 }, { name: 'Çift', extra: 15 }]);
+  assert.deepEqual((await menuOf()).sizes, [{ name: 'Tek', extra: 0, scale: 1 }, { name: 'Çift', extra: 15, scale: 1 }]);
 
   assert.equal((await post({ ...validOrder, items: [line('Latte', 'Orta')] })).status, 400);
   assert.equal((await post({ ...validOrder, items: [line('Latte', 'Çift')] })).status, 201);
@@ -149,6 +149,9 @@ test('boyutlar topluca güncellenir ve doğrulanır', async () => {
     { sizes: [{ name: '', extra: 0 }] },
     { sizes: [{ name: 'A', extra: -1 }] },
     { sizes: [{ name: 'A', extra: 0 }, { name: 'A', extra: 5 }] },
+    { sizes: [{ name: 'A', extra: 0, scale: 0.2 }] },
+    { sizes: [{ name: 'A', extra: 0, scale: 4 }] },
+    { sizes: [{ name: 'A', extra: 0, scale: '2' }] },
     { sizes: Array.from({ length: 7 }, (_, i) => ({ name: 'B' + i, extra: 0 })) },
     {},
   ];
@@ -610,6 +613,107 @@ test('rapor süt ve şurup tercihlerini sayar; CSV seçenekleri içerir', async 
   assert.ok(csv.includes('1× Latte (Orta, Normal süt, Vanilya)'));
 });
 
+// ---------- Tarifler (içerik ve ml) ve hacim çarpanı ----------
+
+test('yeni kurulumda zengin bir menü ve geçerli tarifler gelir', () => {
+  const fresh = openDb(':memory:');
+  const items = fresh.prepare('SELECT * FROM menu_items ORDER BY id').all();
+  assert.ok(items.length >= 15, 'en az 15 ürün');
+  assert.ok(new Set(items.map((i) => i.name)).size === items.length);
+  const categories = new Set(items.map((i) => i.category));
+  assert.ok(categories.has('Kahve') && categories.has('Soğuk Kahve'));
+
+  for (const item of items) {
+    const recipe = JSON.parse(item.recipe);
+    assert.ok(recipe.length >= 1 && recipe.length <= 8, item.name + ' tarifi var');
+    assert.ok(item.description.length > 10, item.name + ' açıklaması var');
+    for (const line of recipe) {
+      assert.ok(line.name && Number.isInteger(line.amount) && line.amount > 0, item.name + ': ' + line.name);
+      assert.ok(['ml', 'g'].includes(line.unit), item.name + ' birimi');
+    }
+  }
+  // örnek: Latte = 30 ml espresso + 180 ml süt + 30 ml süt köpüğü
+  const latte = JSON.parse(items.find((i) => i.name === 'Latte').recipe);
+  assert.deepEqual(latte.map((l) => [l.name, l.amount, l.unit]), [['Espresso', 30, 'ml'], ['Süt', 180, 'ml'], ['Süt köpüğü', 30, 'ml']]);
+
+  const sizes = fresh.prepare('SELECT name, scale FROM sizes ORDER BY sort_order').all();
+  assert.deepEqual(sizes.map((s) => [s.name, s.scale]), [['Küçük', 1], ['Orta', 1.25], ['Büyük', 1.5]]);
+  fresh.close();
+});
+
+test('menü API ürünlerle birlikte açıklama ve tarifi döner', async () => {
+  const items = (await menuOf()).items;
+  assert.ok(items.every((i) => typeof i.description === 'string' && Array.isArray(i.recipe)));
+});
+
+test('yönetici ürünün açıklamasını ve tarifini günceller', async () => {
+  const latte = (await menuOf()).items.find((i) => i.name === 'Latte');
+  const recipe = [
+    { name: 'Espresso', amount: 40, unit: 'ml' },
+    { name: 'Süt', amount: 160, unit: 'ml' },
+    { name: 'Süt köpüğü', amount: 20, unit: 'ml' },
+  ];
+  const res = await adminFetch('/api/menu/items/' + latte.id, 'PATCH', { description: '  Benim tarifim  ', recipe });
+  assert.equal(res.status, 200);
+  const updated = await res.json();
+  assert.equal(updated.description, 'Benim tarifim');
+  assert.deepEqual(updated.recipe, recipe);
+
+  // birim verilmezse ml sayılır; tarif boşaltılabilir
+  const noUnit = await adminFetch('/api/menu/items/' + latte.id, 'PATCH', { recipe: [{ name: 'Su', amount: 100 }] });
+  assert.deepEqual((await noUnit.json()).recipe, [{ name: 'Su', amount: 100, unit: 'ml' }]);
+  const cleared = await adminFetch('/api/menu/items/' + latte.id, 'PATCH', { recipe: [] });
+  assert.deepEqual((await cleared.json()).recipe, []);
+});
+
+test('geçersiz tarif ve açıklama 400 döner; ürün değişmez', async () => {
+  const tea = (await menuOf()).items.find((i) => i.name === 'Çay');
+  const line = (over) => ({ name: 'Süt', amount: 100, unit: 'ml', ...over });
+  const bad = {
+    'tarif dizi değil': { recipe: 'süt' },
+    'çok satır': { recipe: Array.from({ length: 9 }, (_, i) => line({ name: 'S' + i })) },
+    'ad boş': { recipe: [line({ name: '' })] },
+    'ad uzun': { recipe: [line({ name: 'x'.repeat(31) })] },
+    'miktar 0': { recipe: [line({ amount: 0 })] },
+    'miktar negatif': { recipe: [line({ amount: -5 })] },
+    'miktar ondalık': { recipe: [line({ amount: 1.5 })] },
+    'miktar metin': { recipe: [line({ amount: '30' })] },
+    'miktar çok büyük': { recipe: [line({ amount: 5000 })] },
+    'birim geçersiz': { recipe: [line({ unit: 'litre' })] },
+    'satır nesne değil': { recipe: [null] },
+    'açıklama uzun': { description: 'x'.repeat(161) },
+    'açıklama sayı': { description: 5 },
+  };
+  for (const [label, body] of Object.entries(bad)) {
+    assert.equal((await adminFetch('/api/menu/items/' + tea.id, 'PATCH', body)).status, 400, label);
+  }
+  const after = (await menuOf()).items.find((i) => i.name === 'Çay');
+  assert.deepEqual(after.recipe, tea.recipe);
+  assert.equal(after.description, tea.description);
+});
+
+test('yeni ürün tarifle eklenebilir; tarif yetkisiz güncellenemez', async () => {
+  const recipe = [{ name: 'Espresso', amount: 30, unit: 'ml' }, { name: 'Buz', amount: 80, unit: 'g' }];
+  const res = await adminFetch('/api/menu/items', 'POST', { name: 'Espresso Tonic', category: 'Soğuk Kahve', price: 95, description: 'Ferah.', recipe });
+  assert.equal(res.status, 201);
+  const created = await res.json();
+  assert.deepEqual(created.recipe, recipe);
+  assert.equal(created.description, 'Ferah.');
+
+  const denied = await fetch(base + '/api/menu/items/' + created.id, { method: 'PATCH', headers: JSON_HEADERS, body: JSON.stringify({ recipe: [] }) });
+  assert.equal(denied.status, 401);
+});
+
+test('boyutların hacim çarpanı kaydedilir, varsayılan 1 olur, API döner', async () => {
+  const ok = await adminFetch('/api/menu/sizes', 'PUT', { sizes: [{ name: 'S', extra: 0, scale: 1 }, { name: 'M', extra: 10, scale: 1.256 }, { name: 'L', extra: 20 }] });
+  assert.equal(ok.status, 200);
+  const sizes = (await menuOf()).sizes;
+  assert.deepEqual(sizes.map((s) => s.scale), [1, 1.26, 1]); // 2 ondalığa yuvarlanır, verilmeyen 1
+  // sipariş fiyatı çarpandan etkilenmez, sadece ek ücret kullanılır
+  const order = await placed({ ...validOrder, items: [{ type: 'Latte', size: 'M', qty: 1 }] });
+  assert.equal(order.price, 100);
+});
+
 // ---------- Eski veritabanı yükseltme ----------
 
 test('eski (tek ürünlü) veritabanı sepet yapısına sorunsuz yükseltilir', () => {
@@ -656,14 +760,31 @@ test('seçenek özelliğinden önceki veritabanı yükseltilir: bilinen kahveler
         name TEXT NOT NULL, size TEXT NOT NULL, qty INTEGER NOT NULL, unit_price INTEGER NOT NULL);
       CREATE TABLE menu_items (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, category TEXT NOT NULL DEFAULT 'Kahve',
         price INTEGER NOT NULL, available INTEGER NOT NULL DEFAULT 1);
+      CREATE TABLE sizes (name TEXT PRIMARY KEY, extra INTEGER NOT NULL, sort_order INTEGER NOT NULL);
+      INSERT INTO sizes VALUES ('Küçük',0,0), ('Orta',10,1), ('Büyük',20,2);
       INSERT INTO menu_items (name, category, price) VALUES ('Latte','Kahve',90), ('Espresso','Kahve',70), ('Türk Kahvesi','Kahve',60), ('Çay','Diğer',25), ('Özel Karışım','Kahve',99);
       INSERT INTO orders VALUES ('x','Eski','','','',200,'Hazır','2026-01-01T10:00:00.000Z','2026-01-01T10:00:00.000Z',1,'Masa',4);
       INSERT INTO order_items (order_id, name, size, qty, unit_price) VALUES ('x','Latte','Orta',2,100);`);
     old.close();
 
     const upgraded = openDb(file);
-    const flags = Object.fromEntries(upgraded.prepare('SELECT name, allow_milk, allow_syrup FROM menu_items').all().map((r) => [r.name, [r.allow_milk, r.allow_syrup]]));
+    const original = ['Latte', 'Espresso', 'Türk Kahvesi', 'Çay', 'Özel Karışım'];
+    const rows = upgraded.prepare('SELECT * FROM menu_items').all();
+    const flags = Object.fromEntries(rows.filter((r) => original.includes(r.name)).map((r) => [r.name, [r.allow_milk, r.allow_syrup]]));
     assert.deepEqual(flags, { Latte: [1, 1], Espresso: [0, 1], 'Türk Kahvesi': [0, 0], Çay: [0, 0], 'Özel Karışım': [0, 0] });
+
+    // bilinen ürünlerin tarifi dolar, bilinmeyen ürün (Özel Karışım) boş kalır
+    const byName = Object.fromEntries(rows.map((r) => [r.name, r]));
+    assert.equal(JSON.parse(byName.Latte.recipe).length, 3);
+    assert.match(byName.Latte.description, /espresso/i);
+    assert.equal(byName['Özel Karışım'].recipe, '[]');
+    // mevcut ürünlerin fiyatı değişmez, yeni kahveler eklenir
+    assert.equal(byName.Latte.price, 90);
+    assert.ok(['Doppio', 'Flat White', 'Cortado', 'Mocha', 'Cold Brew'].every((n) => byName[n]));
+    assert.ok(rows.length >= 15);
+    // mevcut boyutlar korunur ve bilinen adlara hacim çarpanı verilir
+    const sizeRows = upgraded.prepare('SELECT name, extra, scale FROM sizes ORDER BY sort_order').all();
+    assert.deepEqual(sizeRows.map((s) => [s.name, s.extra, s.scale]), [['Küçük', 0, 1], ['Orta', 10, 1.25], ['Büyük', 20, 1.5]]);
 
     const item = upgraded.prepare('SELECT * FROM order_items').get();
     assert.equal(item.milk, '');
@@ -676,10 +797,15 @@ test('seçenek özelliğinden önceki veritabanı yükseltilir: bilinen kahveler
 
     // sonraki açılışlarda bayraklar tekrar ezilmez: barista kapattığı seçenek kapalı kalır
     const again = openDb(file);
-    again.prepare("UPDATE menu_items SET allow_milk = 0 WHERE name = 'Latte'").run();
+    again.prepare("UPDATE menu_items SET allow_milk = 0, recipe = '[]', description = 'Benim tarifim' WHERE name = 'Latte'").run();
+    again.prepare("DELETE FROM menu_items WHERE name = 'Doppio'").run();
     again.close();
     const third = openDb(file);
-    assert.equal(third.prepare("SELECT allow_milk FROM menu_items WHERE name = 'Latte'").get().allow_milk, 0);
+    const latte = third.prepare("SELECT * FROM menu_items WHERE name = 'Latte'").get();
+    assert.equal(latte.allow_milk, 0);
+    assert.equal(latte.recipe, '[]');                 // barista tarifi sildi: geri yazılmaz
+    assert.equal(latte.description, 'Benim tarifim'); // açıklama ezilmedi
+    assert.equal(third.prepare("SELECT COUNT(*) n FROM menu_items WHERE name = 'Doppio'").get().n, 0); // silinen ürün geri gelmez
     third.close();
   } finally {
     for (const ext of ['', '-wal', '-shm']) fs.rmSync(file + ext, { force: true });

@@ -172,8 +172,9 @@
       <div class="panel">
         <div class="panel-head"><h2 class="panel-title">Boyutlar</h2></div>
         <div class="panel-body">
-          <p class="hint" style="margin:0 0 12px">Boyuta göre eklenen ücret. Örn. Orta +10 ₺. Fiyat = ürün fiyatı + boyut ücreti.</p>
+          <p class="hint" style="margin:0 0 12px">Boyuta göre eklenen ücret. Örn. Orta +10 ₺. Fiyat = ürün fiyatı + boyut ücreti. <b>Hacim çarpanı</b>, tarifteki ml miktarlarının bu boyutta kaç katına çıkacağıdır (Küçük = 1, Orta = 1.25 gibi).</p>
           <form id="sizesForm">
+            <div class="fields size head" aria-hidden="true"><span>Boyut</span><span>Ek ücret (₺)</span><span>Hacim çarpanı</span><span></span></div>
             <div id="sizeRows"></div>
             <div class="row-actions">
               <button type="button" id="addSizeBtn" class="btn btn-sm">+ Boyut ekle</button>
@@ -264,6 +265,42 @@
 
   <div class="toast-area"><p id="message" class="message" role="status" aria-live="polite" hidden></p></div>
 
+  <!-- Tarif düzenleme -->
+  <dialog id="recipeDialog" class="sheet" aria-labelledby="recipeTitle">
+    <form id="recipeForm">
+      <div class="sheet-head">
+        <div>
+          <h2 id="recipeTitle" class="panel-title"></h2>
+          <p class="hint" style="margin:2px 0 0">Tarif standart (Küçük) boy içindir. Diğer boylarda miktarlar hacim çarpanıyla artar.</p>
+        </div>
+        <button type="button" id="recipeClose" class="icon-btn" aria-label="Kapat">×</button>
+      </div>
+      <div class="sheet-body">
+        <label class="field">
+          <span class="field-label">Kısa açıklama (müşteri görür)</span>
+          <textarea name="description" maxlength="160" rows="2" placeholder="Örn. Yumuşak içimli: espresso, buharla ısıtılmış süt ve ince köpük."></textarea>
+        </label>
+
+        <div class="field-label">İçerik <span class="legend-note">bardağa alttan üste doğru ekleme sırası</span></div>
+        <div class="fields ingredient head" aria-hidden="true"><span>İçerik</span><span>Miktar</span><span>Birim</span><span></span><span></span><span></span></div>
+        <div id="recipeRows"></div>
+        <div class="row-actions" style="margin:4px 0 14px">
+          <button type="button" id="addIngredientBtn" class="btn btn-sm">+ İçerik ekle</button>
+        </div>
+
+        <div class="recipe-box">
+          <div class="recipe-head"><span>Önizleme</span><small>Küçük boy</small></div>
+          <div id="recipePreview"></div>
+        </div>
+
+        <div class="row-actions" style="justify-content:flex-end">
+          <button type="button" id="recipeCancel" class="btn">Vazgeç</button>
+          <button type="submit" class="btn btn-primary">Tarifi kaydet</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
   <!-- Fiş önizleme -->
   <dialog id="receiptDialog" class="sheet" aria-labelledby="receiptTitle">
     <div class="sheet-head">
@@ -283,6 +320,7 @@
   <div id="receipt" class="receipt" aria-hidden="true"></div>
 
   <script src="brand.js"></script>
+  <script src="recipe.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

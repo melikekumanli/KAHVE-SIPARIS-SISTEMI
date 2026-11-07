@@ -4,10 +4,33 @@ const STATUSES = ['Bekliyor', 'Hazırlanıyor', 'Hazır', 'Teslim Edildi'];
 
 const MAX_PRICE = 100000;
 const MAX_SIZES = 6;
-const MAX_OPTIONS = 12; // süt ve şurup listelerinde en fazla seçenek
+const MAX_OPTIONS = 12;      // süt ve şurup listelerinde en fazla seçenek
+const MAX_RECIPE_LINES = 8;  // bir tarifteki en fazla içerik
+const MAX_AMOUNT = 2000;     // bir içeriğin en fazla miktarı (ml ya da g)
+const UNITS = ['ml', 'g'];
 
 const isMoney = (v) => Number.isInteger(v) && v >= 0 && v <= MAX_PRICE;
 const cleanText = (v) => (typeof v === 'string' ? v.trim() : '');
+
+// Tarif: [{ name, amount, unit }]. Boş liste kabul edilir (tarif yok).
+function validateRecipe(list) {
+  if (!Array.isArray(list) || list.length > MAX_RECIPE_LINES) {
+    return { errors: [`Tarif en fazla ${MAX_RECIPE_LINES} içerik satırı içerebilir.`], recipe: [] };
+  }
+  const errors = new Set();
+  const recipe = list.map((line) => {
+    const l = line && typeof line === 'object' ? line : {};
+    const name = cleanText(l.name);
+    const unit = l.unit === undefined ? 'ml' : l.unit;
+    if (!name || name.length > 30) errors.add('İçerik adı 1-30 karakter olmalıdır.');
+    if (!UNITS.includes(unit)) errors.add(`Birim ${UNITS.join(' ya da ')} olmalıdır.`);
+    if (!Number.isInteger(l.amount) || l.amount < 1 || l.amount > MAX_AMOUNT) {
+      errors.add(`Miktar 1 ile ${MAX_AMOUNT} arasında bir tam sayı olmalıdır.`);
+    }
+    return { name, amount: l.amount, unit };
+  });
+  return { errors: [...errors], recipe };
+}
 
 // Menü ürünü doğrulama. partial=true ise sadece gelen alanlar kontrol edilir (PATCH).
 function validateItem(body, { partial = false } = {}) {
@@ -39,9 +62,20 @@ function validateItem(body, { partial = false } = {}) {
       data[column] = body[field] ? 1 : 0;
     }
   }
+  if (body.description !== undefined) {
+    if (typeof body.description !== 'string') errors.push('Açıklama metin olmalıdır.');
+    else if (body.description.trim().length > 160) errors.push('Açıklama en fazla 160 karakter olabilir.');
+    data.description = cleanText(body.description);
+  }
+  if (body.recipe !== undefined) {
+    const result = validateRecipe(body.recipe);
+    errors.push(...result.errors);
+    data.recipe = JSON.stringify(result.recipe);
+  }
   return { errors, data };
 }
 
+// Boyutlar: { sizes: [{ name, extra, scale? }] }. scale (hacim çarpanı) varsayılan 1, 0.5 ile 3 arası.
 function validateSizes(body) {
   const errors = [];
   const list = body && body.sizes;
@@ -55,9 +89,13 @@ function validateSizes(body) {
     if (seen.has(name)) errors.push(`"${name}" boyutu birden fazla kez girilmiş.`);
     seen.add(name);
     if (!isMoney(s && s.extra)) errors.push('Boyut ek ücreti 0 ile 100000 arasında bir tam sayı olmalıdır.');
-    return { name, extra: s && s.extra };
+    const scale = s && s.scale === undefined ? 1 : s && s.scale;
+    if (typeof scale !== 'number' || !Number.isFinite(scale) || scale < 0.5 || scale > 3) {
+      errors.push('Hacim çarpanı 0.5 ile 3 arasında bir sayı olmalıdır.');
+    }
+    return { name, extra: s && s.extra, scale: typeof scale === 'number' ? Math.round(scale * 100) / 100 : 1 };
   });
-  return { errors, sizes };
+  return { errors: [...new Set(errors)], sizes };
 }
 
 // Süt / şurup listesi: { options: [{ name, extra, available }] }. Boş liste kabul edilir (seçenek kapatılır).
@@ -87,13 +125,13 @@ function createMenu(db) {
   const selectItemById = db.prepare('SELECT * FROM menu_items WHERE id = ?');
   const selectItemByName = db.prepare('SELECT * FROM menu_items WHERE name = ?');
   const insertItem = db.prepare(
-    'INSERT INTO menu_items (name, category, price, allow_milk, allow_syrup) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO menu_items (name, category, price, allow_milk, allow_syrup, description, recipe) VALUES (?, ?, ?, ?, ?, ?, ?)'
   );
   const deleteItem = db.prepare('DELETE FROM menu_items WHERE id = ?');
-  const selectSizes = db.prepare('SELECT name, extra FROM sizes ORDER BY sort_order');
-  const selectSizeByName = db.prepare('SELECT name, extra FROM sizes WHERE name = ?');
+  const selectSizes = db.prepare('SELECT name, extra, scale FROM sizes ORDER BY sort_order');
+  const selectSizeByName = db.prepare('SELECT name, extra, scale FROM sizes WHERE name = ?');
   const clearSizes = db.prepare('DELETE FROM sizes');
-  const insertSize = db.prepare('INSERT INTO sizes (name, extra, sort_order) VALUES (?, ?, ?)');
+  const insertSize = db.prepare('INSERT INTO sizes (name, extra, sort_order, scale) VALUES (?, ?, ?, ?)');
 
   // Süt ve şurup tabloları aynı yapıdadır; tablo adı sabit bir listeden gelir (SQL'e kullanıcı verisi girmez)
   const optionApi = (table) => {
@@ -122,11 +160,13 @@ function createMenu(db) {
   const milks = optionApi('milks');
   const syrups = optionApi('syrups');
 
+  const mapSize = (s) => (s ? { name: s.name, extra: s.extra, scale: s.scale } : null);
+
   return {
     getMenu() {
       return {
         items: selectItems.all().map(toItem),
-        sizes: selectSizes.all().map((s) => ({ name: s.name, extra: s.extra })),
+        sizes: selectSizes.all().map(mapSize),
         milks: milks.all(),
         syrups: syrups.all(),
         statuses: STATUSES,
@@ -134,21 +174,18 @@ function createMenu(db) {
     },
     findItem: (name) => toItem(selectItemByName.get(name)),
     findItemById: (id) => toItem(selectItemById.get(id)),
-    findSize(name) {
-      const s = selectSizeByName.get(name);
-      return s ? { name: s.name, extra: s.extra } : null;
-    },
+    findSize: (name) => mapSize(selectSizeByName.get(name)),
     findMilk: milks.find,
     findSyrup: syrups.find,
     // Süt seçilmediyse kullanılan varsayılan: listedeki ilk "mevcut" süt
     defaultMilk: () => milks.all().find((m) => m.available) || null,
     milkCount: () => milks.all().length,
-    createItem({ name, category, price, allow_milk = 0, allow_syrup = 0 }) {
-      const { lastInsertRowid } = insertItem.run(name, category, price, allow_milk, allow_syrup);
+    createItem({ name, category, price, allow_milk = 0, allow_syrup = 0, description = '', recipe = '[]' }) {
+      const { lastInsertRowid } = insertItem.run(name, category, price, allow_milk, allow_syrup, description, recipe);
       return toItem(selectItemById.get(Number(lastInsertRowid)));
     },
     updateItem(id, data) {
-      const allowed = ['name', 'category', 'price', 'available', 'allow_milk', 'allow_syrup'];
+      const allowed = ['name', 'category', 'price', 'available', 'allow_milk', 'allow_syrup', 'description', 'recipe'];
       const keys = Object.keys(data).filter((k) => allowed.includes(k));
       if (!keys.length) return toItem(selectItemById.get(id));
       const sql = `UPDATE menu_items SET ${keys.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`;
@@ -160,7 +197,7 @@ function createMenu(db) {
       db.exec('BEGIN');
       try {
         clearSizes.run();
-        sizes.forEach((s, i) => insertSize.run(s.name, s.extra, i));
+        sizes.forEach((s, i) => insertSize.run(s.name, s.extra, i, s.scale));
         db.exec('COMMIT');
       } catch (err) {
         db.exec('ROLLBACK');
@@ -172,4 +209,4 @@ function createMenu(db) {
   };
 }
 
-module.exports = { STATUSES, validateItem, validateSizes, validateOptions, createMenu };
+module.exports = { STATUSES, validateItem, validateSizes, validateOptions, validateRecipe, createMenu };

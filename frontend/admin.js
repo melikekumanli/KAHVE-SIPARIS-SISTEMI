@@ -504,6 +504,7 @@ function renderItems() {
         el("label", { className: "inline-check" }, available, " Serviste"),
         el("label", { className: "inline-check" }, allowsMilk, " Süt seçeneği"),
         el("label", { className: "inline-check" }, allowsSyrup, " Şurup seçeneği"),
+        button(item.recipe.length ? `Tarif (${item.recipe.length})` : "Tarif ekle", "", () => openRecipeEditor(item), "İçerik ve ml miktarlarını düzenle"),
         button("Kaydet", "btn-primary", () =>
           updateItem(item.id, {
             name: name.value, category: category.value, price: price.valueAsNumber,
@@ -553,12 +554,15 @@ $("addItemForm").addEventListener("submit", async (e) => {
   });
 });
 
-function addSizeRow(size = { name: "", extra: 0 }) {
+function addSizeRow(size = { name: "", extra: 0, scale: 1 }) {
   const name = el("input", { type: "text", value: size.name, maxLength: 20, placeholder: "Boyut adı", required: true });
   name.setAttribute("aria-label", "Boyut adı");
   const extra = el("input", { type: "number", value: size.extra, min: 0, step: 1, required: true });
   extra.setAttribute("aria-label", "Ek ücret");
-  const row = el("div", { className: "fields size" }, name, extra);
+  const scale = el("input", { type: "number", value: size.scale ?? 1, min: 0.5, max: 3, step: 0.05, required: true });
+  scale.setAttribute("aria-label", "Hacim çarpanı");
+  scale.title = "Tarifteki ml miktarlarının bu boyutta kaç katı olacağı";
+  const row = el("div", { className: "fields size" }, name, extra, scale);
   row.appendChild(button("Kaldır", "btn-danger", () => row.remove()));
   $("sizeRows").appendChild(row);
 }
@@ -572,11 +576,92 @@ $("addSizeBtn").addEventListener("click", () => addSizeRow());
 
 $("sizesForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const sizes = [...$("sizeRows").children].map((row) => ({ name: row.children[0].value, extra: row.children[1].valueAsNumber }));
+  const sizes = [...$("sizeRows").children].map((row) => ({
+    name: row.children[0].value,
+    extra: row.children[1].valueAsNumber,
+    scale: row.children[2].valueAsNumber,
+  }));
   await attempt("Boyutlar kaydedilemedi.", async () => {
     const response = await api("/api/menu/sizes", { method: "PUT", body: JSON.stringify({ sizes }) });
     if (!response.ok) return reportFailure(response, "Boyutlar kaydedilemedi.");
     showMessage("Boyutlar kaydedildi.", "success");
+    await loadMenu();
+  });
+});
+
+// ---------- Tarif düzenleme (içerik ve ml) ----------
+let recipeItem = null;
+
+function readRecipeRows() {
+  return [...$("recipeRows").children].map((row) => ({
+    name: row.querySelector("input[type=text]").value.trim(),
+    amount: row.querySelector("input[type=number]").valueAsNumber,
+    unit: row.querySelector("select").value,
+  }));
+}
+
+function updateRecipePreview() {
+  const valid = readRecipeRows().filter((l) => l.name && Number.isInteger(l.amount) && l.amount > 0);
+  const box = $("recipePreview");
+  if (!valid.length) {
+    box.replaceChildren(el("p", { className: "hint", style: "margin:0", textContent: "İçerik ekledikçe bardak burada görünür." }));
+    return;
+  }
+  window.Recipe.render(box, valid, { scale: 1 });
+}
+
+function addIngredientRow(line = { name: "", amount: 30, unit: "ml" }, position = null) {
+  const name = el("input", { type: "text", value: line.name, maxLength: 30, placeholder: "Örn. Espresso", required: true });
+  name.setAttribute("aria-label", "İçerik adı");
+  const amount = el("input", { type: "number", value: line.amount, min: 1, max: 2000, step: 1, required: true });
+  amount.setAttribute("aria-label", "Miktar");
+  const unit = el("select", {}, el("option", { value: "ml", textContent: "ml" }), el("option", { value: "g", textContent: "g" }));
+  unit.value = line.unit || "ml";
+  unit.setAttribute("aria-label", "Birim");
+
+  const row = el("div", { className: "fields ingredient" }, name, amount, unit);
+  const move = (label, title, dir) => {
+    const b = el("button", { type: "button", className: "icon-btn small", textContent: label, title });
+    b.addEventListener("click", () => {
+      const sibling = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+      if (!sibling) return;
+      if (dir < 0) row.parentElement.insertBefore(row, sibling);
+      else row.parentElement.insertBefore(sibling, row);
+      updateRecipePreview();
+    });
+    return b;
+  };
+  const remove = el("button", { type: "button", className: "icon-btn small danger", textContent: "×", title: "Kaldır" });
+  remove.addEventListener("click", () => { row.remove(); updateRecipePreview(); });
+  row.append(move("↑", "Yukarı (bardakta bir kat üste)", -1), move("↓", "Aşağı (bardakta bir kat alta)", 1), remove);
+  $("recipeRows").appendChild(row);
+}
+
+function openRecipeEditor(item) {
+  recipeItem = item;
+  $("recipeTitle").textContent = `${item.name}: içerik ve tarif`;
+  $("recipeForm").description.value = item.description || "";
+  $("recipeRows").innerHTML = "";
+  item.recipe.forEach((line) => addIngredientRow(line));
+  updateRecipePreview();
+  $("recipeDialog").showModal();
+}
+
+$("addIngredientBtn").addEventListener("click", () => { addIngredientRow(); updateRecipePreview(); });
+$("recipeRows").addEventListener("input", updateRecipePreview);
+$("recipeClose").addEventListener("click", () => $("recipeDialog").close());
+$("recipeCancel").addEventListener("click", () => $("recipeDialog").close());
+$("recipeDialog").addEventListener("click", (e) => { if (e.target === $("recipeDialog")) $("recipeDialog").close(); });
+
+$("recipeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!recipeItem) return;
+  const data = { description: e.target.description.value, recipe: readRecipeRows() };
+  await attempt("Tarif kaydedilemedi.", async () => {
+    const response = await api(`/api/menu/items/${recipeItem.id}`, { method: "PATCH", body: JSON.stringify(data) });
+    if (!response.ok) return reportFailure(response, "Tarif kaydedilemedi.");
+    $("recipeDialog").close();
+    showMessage("Tarif kaydedildi.", "success");
     await loadMenu();
   });
 });
