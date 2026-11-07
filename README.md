@@ -287,6 +287,5 @@ npm test
 
 ## Geliştiren
 
-**Melike Kumanlı** · Yönetim Bilişim Sistemleri 4. sınıf öğrencisi
+**Melike Kumanlı** 
 
-Önerileriniz ve hata bildirimleriniz için [Issues](https://github.com/melikekumanli/KAHVE-SIPARIS-SISTEMI/issues) bölümünü kullanabilirsiniz.
