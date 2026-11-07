@@ -2304,3 +2304,31 @@ select:focus { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22htt
 .btn-danger:not(:disabled):hover { background: #fbe0dc; }
 .app-header .btn:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
 .app-header .btn:not(:disabled):hover { background: rgba(255, 255, 255, 0.22); }
+
+/* Sepet bardağı: daha modern — yuvarlak köşeli taban, yüzen kol bandı, sade kapak */
+.cup { filter: drop-shadow(0 18px 28px rgba(40, 20, 8, 0.14)) drop-shadow(0 1px 2px rgba(40, 20, 8, 0.1)); }
+.cup-lid { height: 26px; margin: 0 -1.2%; }
+.cup-lid::before { height: 14px; border-radius: 12px 12px 4px 4px; }
+.cup-lid::after { left: 12%; right: 12%; bottom: 13px; height: 11px; border-radius: 12px 12px 0 0; }
+.cup-sip { display: none; }
+.cup-steam { bottom: 24px; }
+.cup-body {
+  margin-top: -1px;
+  padding: 0 0 26px;
+  background: #fffaf2;
+  clip-path: polygon(0 0, 100% 0, calc(96.4% - 0.0px) calc(100% - 26.0px), calc(96.4% - 0.5px) calc(100% - 20.9px), calc(96.4% - 2.0px) calc(100% - 16.1px), calc(96.4% - 4.4px) calc(100% - 11.6px), calc(96.4% - 7.6px) calc(100% - 7.6px), calc(96.4% - 11.6px) calc(100% - 4.4px), calc(96.4% - 16.1px) calc(100% - 2.0px), calc(96.4% - 20.9px) calc(100% - 0.5px), calc(96.4% - 26.0px) calc(100% - 0.0px), calc(3.6% + 26.0px) calc(100% - 0.0px), calc(3.6% + 20.9px) calc(100% - 0.5px), calc(3.6% + 16.1px) calc(100% - 2.0px), calc(3.6% + 11.6px) calc(100% - 4.4px), calc(3.6% + 7.6px) calc(100% - 7.6px), calc(3.6% + 4.4px) calc(100% - 11.6px), calc(3.6% + 2.0px) calc(100% - 16.1px), calc(3.6% + 0.5px) calc(100% - 20.9px), calc(3.6% + 0.0px) calc(100% - 26.0px));
+}
+.cup-body::after { display: none; }
+/* kol bandı: gövdenin içinde yüzen, yuvarlak köşeli şerit */
+.cup-head {
+  margin: 18px 7% 18px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: none;
+}
+.cup-title { font-size: 12.5px; letter-spacing: 0.22em; }
+.cup-label { margin: 0 8%; }
+@media (max-width: 640px) {
+  .cup-head { margin: 16px 6% 16px; padding: 9px 16px; }
+  .cup-label { margin: 0 7%; }
+}
