@@ -6,11 +6,6 @@
 
 İnternet, hosting, abonelik ya da ek yazılım gerekmez. Bilgisayarınızı açın, aynı Wi-Fi'daki müşteriler masadan sipariş versin.
 
-![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A5%2022.5-339933?logo=node.js&logoColor=white)
-![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-003B57?logo=sqlite&logoColor=white)
-![Testler](https://img.shields.io/badge/testler-59%20ge%C3%A7ti-2ea44f)
-![Bağımlılık](https://img.shields.io/badge/ba%C4%9F%C4%B1ml%C4%B1l%C4%B1k-2-blue)
 
 <img src="docs/screenshots/espresso-animasyonu.png" alt="Müşteri sipariş ekranı: çekirdek şekilli menü, sepet bardağı ve espresso çekme animasyonu" width="900">
 
