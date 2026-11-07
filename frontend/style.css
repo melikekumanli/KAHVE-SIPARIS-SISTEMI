@@ -19,8 +19,8 @@
   --muted: #667085;
 
   --wait: #b54708;   --wait-bg: #fffaeb;   --wait-line: #fedf89;
-  --prep: #175cd3;   --prep-bg: #eff8ff;   --prep-line: #b2ddff;
-  --ready: #067647;  --ready-bg: #ecfdf3;  --ready-line: #abefc6;
+  --prep: #7a4a2b;   --prep-bg: #f6ece0;   --prep-line: #e3cdb4;
+  --ready: #4d6b3a;  --ready-bg: #eef3e8;  --ready-line: #cddcbd;
   --done: #475467;   --done-bg: #f2f4f7;   --done-line: #e4e7ec;
   --danger: #b42318; --danger-bg: #fef3f2; --danger-line: #fecdca;
 
@@ -2337,3 +2337,31 @@ select:focus { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22htt
 .cup-label select,
 .cup-label label.seg,
 .cup-label .stepper { background: #f8f6f2; }
+
+/* =========================================================
+   Personel ve mutfak panelleri: ana tasarımla aynı kahve paleti
+   ========================================================= */
+.board-col { background: #f3ede4; border-top-width: 4px; border-radius: 22px; }
+.board-col.wait { border-top-color: #c98a3b; }
+.board-col.prep { border-top-color: #7a4a2b; }
+.board-col.ready { border-top-color: #6f8f55; }
+.board-title { color: var(--coffee-ink, #4a2c18); letter-spacing: 0.12em; }
+.board-count { color: var(--coffee-ink, #4a2c18); background: #fff; }
+.ticket { background: #fff; border: 1px solid rgba(92, 58, 32, 0.12); border-radius: 18px; box-shadow: 0 2px 6px rgba(60, 30, 10, 0.06); }
+.ticket-no { color: var(--coffee-ink, #4a2c18); }
+
+/* Mutfak çubuğu: başlıkla aynı koyu kahve, yuvarlak alt köşe */
+body.kitchen .kitchen-bar {
+  background: var(--hdr-bg, #38200f);
+  border-radius: 0 0 22px 22px;
+  padding: 12px 22px;
+  box-shadow: 0 8px 20px rgba(40, 20, 8, 0.22);
+}
+body.kitchen .kitchen-bar strong { font-size: 17px; letter-spacing: 0.04em; }
+body.kitchen .kitchen-bar .btn { color: #fff; background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.3); box-shadow: none; }
+body.kitchen .kitchen-bar .btn:hover { background: rgba(255, 255, 255, 0.22); }
+body.kitchen { background: #f7f2ea; }
+body.kitchen .page { padding-top: 18px; }
+
+/* Menü yönetimi: kategori kutusu kesilmesin */
+@media (min-width: 641px) { .editor-row .fields { grid-template-columns: minmax(150px, 2.8fr) minmax(140px, 1.5fr) 76px; } }
