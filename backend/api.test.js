@@ -397,11 +397,13 @@ test('menü kart stili: varsayılan klasik, çekirdeğe geçilir, geçersiz değ
 
   const first = await get();
   assert.equal(first.menuStyle, 'klasik');
-  assert.deepEqual(first.menuStyles, ['klasik', 'cekirdek']);
+  assert.deepEqual(first.menuStyles, ['klasik', 'ikonlu', 'cekirdek']);
 
   assert.equal((await put({ menuStyle: 'cekirdek' }, {})).status, 401); // yetkisiz değiştiremez
-  assert.equal((await put({ menuStyle: 'cekirdek' })).status, 200);
-  assert.equal((await get()).menuStyle, 'cekirdek');
+  for (const style of ['ikonlu', 'cekirdek']) {
+    assert.equal((await put({ menuStyle: style })).status, 200, style);
+    assert.equal((await get()).menuStyle, style);
+  }
 
   for (const bad of ['kare', '', null, 5, 'CEKIRDEK']) {
     assert.equal((await put({ menuStyle: bad })).status, 400, String(bad));

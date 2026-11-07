@@ -28,7 +28,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - **Raporlar:** bugün / dün / son 7 / son 30 gün için sipariş sayısı, ciro, ürün adedi, ortalama sipariş; günlük ciro ve saat dağılımı grafikleri, çok satanlar, masa/paket oranı, **en çok seçilen süt ve şuruplar**. **CSV (Excel) olarak indirme.**
 - **Tarif düzenleme:** her ürün için "Tarif" düğmesiyle kısa açıklama ve içerik listesi (ad, miktar, ml ya da g, alttan üste sıra, yukarı/aşağı taşıma) düzenlenir; canlı bardak önizlemesi vardır. Boyutlara hacim çarpanı verilir.
 - **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme. Ürün başına **süt / şurup seçeneği açma-kapama**; süt ve şurup listelerini (ad, ek ücret, "mevcut") düzenleme. Seçenekler siparişte, panoda, fişte ve CSV'de görünür.
-- **Ayarlar (marka):** kafe adı, slogan, 4 renk teması ve **menü kart stili** (Klasik ya da **Kahve çekirdeği**: ürünler ortasında çentik olan kavrulmuş çekirdekler biçiminde, kategoriye göre kavurma tonu, sepettekilerde altın halka; telefonda iki sütun), canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
+- **Ayarlar (marka):** kafe adı, slogan, 4 renk teması ve **menü kart stili**: **Klasik**, **Çekirdek ikonlu** (temiz kart, solda küçük çekirdek ikonu) ya da **Çekirdek şekilli** (her ürün gerçek oranlı, çentikli bir kahve çekirdeği; kategoriye göre kavurma tonu, sepettekilerde altın parıltı; satırda 3, telefonda 2 tane), canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
 **Güvenlik ve güvenilirlik**
 - Barista anahtarı ilk açılışta rastgele üretilir (tahmin edilebilir varsayılan yok).

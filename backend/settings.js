@@ -1,6 +1,6 @@
 // Kafe marka ayarları (ad, slogan, renk teması). Veritabanında anahtar-değer olarak saklanır.
 const THEMES = ['kahve', 'zeytin', 'lacivert', 'bordo'];
-const MENU_STYLES = ['klasik', 'cekirdek']; // menü kartlarının görünümü
+const MENU_STYLES = ['klasik', 'ikonlu', 'cekirdek']; // menü kartlarının görünümü
 
 const DEFAULT_SETTINGS = {
   cafeName: 'Kahve Sipariş',
