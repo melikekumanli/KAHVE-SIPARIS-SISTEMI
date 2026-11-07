@@ -28,14 +28,14 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - **Raporlar:** bugün / dün / son 7 / son 30 gün için sipariş sayısı, ciro, ürün adedi, ortalama sipariş; günlük ciro ve saat dağılımı grafikleri, çok satanlar, masa/paket oranı, **en çok seçilen süt ve şuruplar**. **CSV (Excel) olarak indirme.**
 - **Tarif düzenleme:** her ürün için "Tarif" düğmesiyle kısa açıklama ve içerik listesi (ad, miktar, ml ya da g, alttan üste sıra, yukarı/aşağı taşıma) düzenlenir; canlı bardak önizlemesi vardır. Boyutlara hacim çarpanı verilir.
 - **Menü yönetimi:** ürün ekleme/silme, ad-kategori-fiyat düzenleme, "tükendi" işaretleme, boyut ve boyut ücretlerini değiştirme. Ürün başına **süt / şurup seçeneği açma-kapama**; süt ve şurup listelerini (ad, ek ücret, "mevcut") düzenleme. Seçenekler siparişte, panoda, fişte ve CSV'de görünür.
-- **Ayarlar (marka):** kafe adı, slogan ve 4 renk temasından seçim, canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
+- **Ayarlar (marka):** kafe adı, slogan, 4 renk teması ve **menü kart stili** (Klasik ya da **Kahve çekirdeği**: ürünler ortasında çentik olan kavrulmuş çekirdekler biçiminde, kategoriye göre kavurma tonu, sepettekilerde altın halka; telefonda iki sütun), canlı önizlemeyle; müşteri sayfasına, sekme başlığına ve fişe yansır.
 
 **Güvenlik ve güvenilirlik**
 - Barista anahtarı ilk açılışta rastgele üretilir (tahmin edilebilir varsayılan yok).
 - Hatalı anahtar denemeleri ve aşırı sipariş gönderimi hız sınırıyla engellenir.
 - Fiyat her zaman sunucuda hesaplanır; istemci fiyatı/durumu değiştiremez.
 - Siparişte ürün adı ve fiyat kopyası saklanır: menüyü değiştirmek eski siparişleri bozmaz.
-- 55 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
+- 56 otomatik API testi (sepet ve seçenek doğrulama, yetki, hız sınırı, arşiv, rapor, CSV güvenliği, eski veritabanı yükseltme).
 - **Kahve bardağı sepet:** "Sepetiniz" paneli kapaklı, beyaza yakın bir kahve bardağı biçiminde (buhar çıkar, gövde aşağı doğru daralır); bardağın içindeki alan sütlü kahve (latte) renginde, form içeriği bu zemin üzerinde okunaklı kahve tonlarıyla gösterilir. Telefonda ve tablette de bardak biçimini korur.
 - **Damlalı üst bar:** koyu kahve renkli, altında büyük bir dalga ve sarkan damlalar (SVG, ekran genişliğine göre üretilir; damlalar yavaşça uzar, bazılarından damlacık düşer; "hareketi azalt" ayarına uyar). Renk temasıyla birlikte değişir.
 - **Tutarlı bileşen sistemi:** hap biçimli düğmeler (kahve ana düğme, kremsi ikincil, yumuşak kırmızı silme), hap sekmeler ve segmentli kontroller, aç/kapa rozetleri, yuvarlak adet düğmeleri; hepsi damlalı üst bar ve bardakla aynı kahve/krem renklerinde.
@@ -124,7 +124,7 @@ Tüm veri (siparişler, ürün satırları, menü, ayarlar) `data/orders.db` dos
 | PUT    | `/api/menu/sizes`           | Barista | Boyut listesini değiştirir (`{ sizes: [{ name, extra, scale }] }`; `scale` hacim çarpanı, varsayılan 1) |
 | PUT    | `/api/menu/milks`           | Barista | Süt listesini değiştirir (`{ options: [{ name, extra, available }] }`) |
 | PUT    | `/api/menu/syrups`          | Barista | Şurup listesini değiştirir (aynı biçim) |
-| GET    | `/api/settings`             | Herkes  | Kafe adı, slogan, tema, masa sayısı |
+| GET    | `/api/settings`             | Herkes  | Kafe adı, slogan, tema, menü stili, masa sayısı |
 | PUT    | `/api/settings`             | Barista | Marka ayarlarını ve masa sayısını günceller |
 | GET    | `/api/reports`              | Barista | Özet rapor: `?from=<ISO>&to=<ISO>` (en fazla 93 gün) |
 | GET    | `/api/reports/orders.csv`   | Barista | Aynı aralığın siparişleri, Excel uyumlu CSV |

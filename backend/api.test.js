@@ -390,6 +390,31 @@ test('ayarlar: varsayılanlar herkese açık, güncelleme sadece yöneticiye', a
   }
 });
 
+test('menü kart stili: varsayılan klasik, çekirdeğe geçilir, geçersiz değer reddedilir', async () => {
+  const get = async () => (await fetch(base + '/api/settings')).json();
+  const put = (body, headers = ADMIN) =>
+    fetch(base + '/api/settings', { method: 'PUT', headers: { ...JSON_HEADERS, ...headers }, body: JSON.stringify(body) });
+
+  const first = await get();
+  assert.equal(first.menuStyle, 'klasik');
+  assert.deepEqual(first.menuStyles, ['klasik', 'cekirdek']);
+
+  assert.equal((await put({ menuStyle: 'cekirdek' }, {})).status, 401); // yetkisiz değiştiremez
+  assert.equal((await put({ menuStyle: 'cekirdek' })).status, 200);
+  assert.equal((await get()).menuStyle, 'cekirdek');
+
+  for (const bad of ['kare', '', null, 5, 'CEKIRDEK']) {
+    assert.equal((await put({ menuStyle: bad })).status, 400, String(bad));
+  }
+  assert.equal((await get()).menuStyle, 'cekirdek'); // hatalı istek değeri bozmaz
+
+  // başka bir ayar güncellenince stil korunur; klasiğe dönülebilir
+  await put({ cafeName: 'Moka Kafe' });
+  assert.equal((await get()).menuStyle, 'cekirdek');
+  assert.equal((await put({ menuStyle: 'klasik' })).status, 200);
+  assert.equal((await get()).menuStyle, 'klasik');
+});
+
 // ---------- Raporlar ----------
 
 const todayRange = () => {

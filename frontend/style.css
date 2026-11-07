@@ -1780,3 +1780,212 @@ label.opt.disabled small { color: var(--danger); }
 @media (prefers-reduced-motion: reduce) {
   .recipe-layer { transition: none; }
 }
+
+/* =========================================================
+   Menü kart stili: kahve çekirdeği
+   (Personel paneli > Ayarlar > Menü kart stili; html[data-menu-style="cekirdek"])
+   Her ürün kavrulmuş bir çekirdek gibi oval; ad çentiğin üstünde, fiyat altında.
+   ========================================================= */
+[data-menu-style="cekirdek"] .menu-items {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px 14px;
+  padding: 4px 2px;
+}
+
+[data-menu-style="cekirdek"] .menu-item {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  justify-items: center;
+  min-height: 0;
+  height: 120px;
+  padding: 10px 17% 12px;
+  text-align: center;
+  color: #f6e8d8;
+  /* Üstte hafif ışık yansıması, ortada sıcak kahve, kenarlarda koyu kavrulmuş ton */
+  background:
+    radial-gradient(ellipse at 30% 22%, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(ellipse at 50% 44%, #6d4229 0%, #4b2c1a 58%, #33200f 100%);
+  border: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 -14px 22px rgba(0, 0, 0, 0.4),
+    inset 0 8px 14px rgba(255, 255, 255, 0.1),
+    0 14px 22px -12px rgba(40, 20, 8, 0.7);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+/* Hafif eğik duran çekirdekler: dökülmüş gibi doğal görünüm */
+[data-menu-style="cekirdek"] .menu-item:nth-child(3n + 1) { transform: rotate(-0.7deg); }
+[data-menu-style="cekirdek"] .menu-item:nth-child(3n + 2) { transform: rotate(0.6deg); }
+
+/* Çentik */
+[data-menu-style="cekirdek"] .menu-item::after {
+  content: "";
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 50%;
+  height: 22px;
+  transform: translateY(-50%);
+  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%2022%22%20preserveAspectRatio%3D%22none%22%3E%0A%3Cpath%20d%3D%22M3%2012%20C38%201%2068%2022%20100%2011%20S164%201%20197%2010%22%20fill%3D%22none%22%20stroke%3D%22%231b0e06%22%20stroke-width%3D%223.4%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.9%22%2F%3E%0A%3Cpath%20d%3D%22M3%2015.5%20C38%204.5%2068%2025.5%20100%2014.5%20S164%204.5%20197%2013.5%22%20fill%3D%22none%22%20stroke%3D%22%23b07548%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.55%22%2F%3E%0A%3C%2Fsvg%3E") center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+[data-menu-style="cekirdek"] .menu-item-info { grid-row: 1; align-self: end; padding-bottom: 8px; align-items: center; flex: none; }
+[data-menu-style="cekirdek"] .menu-item-name { justify-content: center; font-size: 15px; line-height: 1.2; color: #fbeedd; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+[data-menu-style="cekirdek"] .menu-item-sub { display: none; } /* içerik özeti ürün penceresinde ve ipucunda */
+[data-menu-style="cekirdek"] .menu-item-price { grid-row: 2; align-self: start; margin: 0; padding-top: 8px; font-size: 17px; color: #f5d9b0; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45); }
+[data-menu-style="cekirdek"] .tag-soldout { grid-row: 2; align-self: start; margin: 8px 0 0; color: #ffd9d3; background: rgba(120, 30, 20, 0.55); border-color: rgba(255, 200, 190, 0.35); }
+
+/* Ekle işareti: alt sağda küçük, yarı saydam */
+[data-menu-style="cekirdek"] .add-mark {
+  position: absolute;
+  right: 12%;
+  bottom: 16%;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  color: #f6e8d8;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+[data-menu-style="cekirdek"] .menu-item:hover .add-mark { color: #3a2214; background: #f0c98d; border-color: #f0c98d; }
+
+/* Sepetteki ürün: altın halka; sayı rozeti çekirdeğin üst kenarında */
+[data-menu-style="cekirdek"] .menu-item.in-cart {
+  background:
+    radial-gradient(ellipse at 30% 22%, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(ellipse at 50% 44%, #6d4229 0%, #4b2c1a 58%, #33200f 100%);
+  box-shadow:
+    0 0 0 3px #e9bd78,
+    inset 0 -14px 22px rgba(0, 0, 0, 0.4),
+    inset 0 8px 14px rgba(255, 255, 255, 0.1),
+    0 14px 22px -12px rgba(40, 20, 8, 0.7);
+}
+
+[data-menu-style="cekirdek"] .menu-item.in-cart .add-mark { color: #3a2214; background: #f0c98d; border-color: #f0c98d; }
+
+[data-menu-style="cekirdek"] .menu-item .pill {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #3a2214;
+  background: #f0c98d;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Kavurma tonları: kategoriye göre */
+[data-menu-style="cekirdek"] .menu-item[data-cat="Soğuk Kahve"] {
+  background:
+    radial-gradient(ellipse at 30% 22%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(ellipse at 50% 44%, #8d5c38 0%, #6a4228 58%, #4a2c19 100%);
+}
+
+[data-menu-style="cekirdek"] .menu-item[data-cat="Diğer"] {
+  background:
+    radial-gradient(ellipse at 30% 22%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(ellipse at 50% 44%, #99692c 0%, #744a1b 58%, #4f3010 100%);
+}
+
+[data-menu-style="cekirdek"] .menu-item:hover { transform: translateY(-3px) rotate(-1deg); box-shadow: inset 0 -14px 22px rgba(0, 0, 0, 0.4), inset 0 8px 14px rgba(255, 255, 255, 0.12), 0 20px 26px -12px rgba(40, 20, 8, 0.75); }
+[data-menu-style="cekirdek"] .menu-item.in-cart:hover { box-shadow: 0 0 0 3px #e9bd78, inset 0 -14px 22px rgba(0, 0, 0, 0.4), inset 0 8px 14px rgba(255, 255, 255, 0.12), 0 20px 26px -12px rgba(40, 20, 8, 0.75); }
+[data-menu-style="cekirdek"] .menu-item:active { transform: translateY(0) scale(0.98); }
+[data-menu-style="cekirdek"] .menu-item:focus-visible { outline: 3px solid #e9bd78; outline-offset: 3px; }
+
+/* Tükenen: soluk, gri-kahve */
+[data-menu-style="cekirdek"] .menu-item.disabled {
+  background: radial-gradient(ellipse at 50% 44%, #9b8a7b 0%, #7e6e60 60%, #66574b 100%);
+  filter: saturate(0.5);
+  opacity: 0.75;
+  transform: none;
+  box-shadow: inset 0 -12px 18px rgba(0, 0, 0, 0.25);
+}
+
+[data-menu-style="cekirdek"] .menu-item.disabled .menu-item-name { text-decoration: line-through; color: #efe6dc; }
+[data-menu-style="cekirdek"] .menu-item.disabled:hover { transform: none; }
+
+/* Dar ekranda tek sütun: çekirdekler tam genişlikte */
+@media (max-width: 640px) {
+  [data-menu-style="cekirdek"] .menu-items { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
+  [data-menu-style="cekirdek"] .menu-item { height: 108px; padding: 8px 13% 10px; }
+  [data-menu-style="cekirdek"] .menu-item-name { font-size: 13.5px; }
+  [data-menu-style="cekirdek"] .menu-item-info { padding-bottom: 6px; }
+  [data-menu-style="cekirdek"] .menu-item-price { padding-top: 6px; font-size: 15px; }
+  [data-menu-style="cekirdek"] .menu-item::after { left: 12%; right: 12%; height: 18px; }
+  [data-menu-style="cekirdek"] .add-mark { width: 24px; height: 24px; font-size: 16px; right: 10%; bottom: 15%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-menu-style="cekirdek"] .menu-item:nth-child(n) { transform: none; }
+  [data-menu-style="cekirdek"] .menu-item:hover { transform: none; }
+}
+
+/* Ayarlar: stil seçimi (küçük önizlemeli kartlar) */
+.style-choices { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.style-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 130px;
+  padding: 14px 18px;
+  font-weight: 650;
+  color: var(--coffee-ink);
+  background: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.style-choice:hover { border-color: #b9c1cd; }
+.style-choice:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.style-choice:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.style-preview { position: relative; display: block; width: 72px; height: 40px; }
+
+.style-preview.klasik {
+  background: #fff;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.12);
+}
+
+.style-preview.klasik::before,
+.style-preview.klasik::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  height: 5px;
+  border-radius: 3px;
+  background: #cfd4dc;
+}
+
+.style-preview.klasik::before { top: 11px; width: 34px; }
+.style-preview.klasik::after { top: 22px; width: 20px; background: #e4e7ec; }
+
+.style-preview.cekirdek {
+  background:
+    radial-gradient(ellipse at 30% 22%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 46%),
+    radial-gradient(ellipse at 50% 44%, #6d4229 0%, #4b2c1a 58%, #33200f 100%);
+  border-radius: 50%;
+  box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.4), 0 6px 10px -5px rgba(40, 20, 8, 0.6);
+}
+
+.style-preview.cekirdek::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 50%;
+  height: 10px;
+  transform: translateY(-50%);
+  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2060%2012%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M3%206.5%20C14%201%2022%2012%2030%206%20S48%201%2057%205.5%22%20fill%3D%22none%22%20stroke%3D%22%231b0e06%22%20stroke-width%3D%222.2%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E") center / 100% 100% no-repeat;
+}
+
+.cat-tabs, .tabs { scrollbar-width: none; }
+.cat-tabs::-webkit-scrollbar, .tabs::-webkit-scrollbar { display: none; }

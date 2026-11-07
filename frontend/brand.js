@@ -13,6 +13,7 @@
   function apply(settings) {
     window.Brand.data = settings;
     document.documentElement.dataset.theme = settings.theme || "kahve";
+    document.documentElement.dataset.menuStyle = settings.menuStyle || "klasik";
     document.querySelectorAll("[data-brand-name]").forEach((e) => { e.textContent = settings.cafeName; });
     document.querySelectorAll("[data-brand-tagline]").forEach((e) => {
       e.textContent = settings.tagline;

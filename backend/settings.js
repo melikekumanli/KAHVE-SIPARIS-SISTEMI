@@ -1,10 +1,12 @@
 // Kafe marka ayarları (ad, slogan, renk teması). Veritabanında anahtar-değer olarak saklanır.
 const THEMES = ['kahve', 'zeytin', 'lacivert', 'bordo'];
+const MENU_STYLES = ['klasik', 'cekirdek']; // menü kartlarının görünümü
 
 const DEFAULT_SETTINGS = {
   cafeName: 'Kahve Sipariş',
   tagline: 'Taze kahve, hızlı sipariş',
   theme: 'kahve',
+  menuStyle: 'klasik',
   tableCount: 10, // 0: masa/paket seçimi kapalı
 };
 
@@ -29,6 +31,10 @@ function validateSettings(body) {
     if (!THEMES.includes(b.theme)) errors.push(`Tema şunlardan biri olmalı: ${THEMES.join(', ')}.`);
     data.theme = b.theme;
   }
+  if (b.menuStyle !== undefined) {
+    if (!MENU_STYLES.includes(b.menuStyle)) errors.push(`Menü stili şunlardan biri olmalı: ${MENU_STYLES.join(', ')}.`);
+    data.menuStyle = b.menuStyle;
+  }
   if (b.tableCount !== undefined) {
     if (!Number.isInteger(b.tableCount) || b.tableCount < 0 || b.tableCount > MAX_TABLES) {
       errors.push(`Masa sayısı 0 ile ${MAX_TABLES} arasında bir tam sayı olmalıdır.`);
@@ -49,7 +55,7 @@ function createSettings(db) {
       const stored = Object.fromEntries(selectAll.all().map((r) => [r.key, r.value]));
       const merged = { ...DEFAULT_SETTINGS, ...stored };
       merged.tableCount = Number(merged.tableCount);
-      return { ...merged, themes: THEMES };
+      return { ...merged, themes: THEMES, menuStyles: MENU_STYLES };
     },
     update(data) {
       Object.entries(data).forEach(([k, v]) => upsert.run(k, v));
@@ -58,4 +64,4 @@ function createSettings(db) {
   };
 }
 
-module.exports = { THEMES, DEFAULT_SETTINGS, validateSettings, createSettings };
+module.exports = { THEMES, MENU_STYLES, DEFAULT_SETTINGS, validateSettings, createSettings };

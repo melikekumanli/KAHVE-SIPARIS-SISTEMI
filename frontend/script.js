@@ -146,6 +146,10 @@ function renderMenu() {
       const inCart = qtyInCart(item.name);
       const button = makeEl("button", `menu-item${item.available ? "" : " disabled"}${inCart ? " in-cart" : ""}`);
       button.type = "button";
+      button.dataset.cat = item.category; // kavurma tonu (çekirdek stili) kategoriye göre değişir
+      if (item.recipe && item.recipe.length) {
+        button.title = window.Recipe.summary(item.recipe, menu.sizes[0] ? menu.sizes[0].scale : 1);
+      }
       button.disabled = !item.available;
       button.setAttribute("aria-label", item.available
         ? `${item.name}, ${formatPrice(item.price)}${inCart ? `, sepette ${inCart} adet` : ""}`

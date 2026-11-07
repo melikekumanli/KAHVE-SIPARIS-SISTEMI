@@ -725,6 +725,8 @@ function renderSettings() {
   form.cafeName.value = s.cafeName || "";
   form.tagline.value = s.tagline || "";
   form.tableCount.value = Number.isInteger(s.tableCount) ? s.tableCount : 10;
+  const styleRadio = form.querySelector(`input[name=menuStyle][value="${s.menuStyle || "klasik"}"]`);
+  if (styleRadio) styleRadio.checked = true;
 
   const swatches = $("swatches");
   swatches.innerHTML = "";
@@ -745,10 +747,11 @@ $("settingsForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
   const theme = (form.querySelector("input[name=theme]:checked") || {}).value;
+  const menuStyle = (form.querySelector("input[name=menuStyle]:checked") || {}).value;
   await attempt("Ayarlar kaydedilemedi.", async () => {
     const response = await api("/api/settings", {
       method: "PUT",
-      body: JSON.stringify({ cafeName: form.cafeName.value, tagline: form.tagline.value, theme, tableCount: form.tableCount.valueAsNumber }),
+      body: JSON.stringify({ cafeName: form.cafeName.value, tagline: form.tagline.value, theme, menuStyle, tableCount: form.tableCount.valueAsNumber }),
     });
     if (!response.ok) return reportFailure(response, "Ayarlar kaydedilemedi.");
     const saved = await response.json();
