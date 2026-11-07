@@ -758,7 +758,7 @@ test('kategori adları bir kez yeniden adlandırılır; sonradan verilen adlar k
     const upgraded = openDb(file);
     const cat = (n) => upgraded.prepare('SELECT category FROM menu_items WHERE name = ?').get(n).category;
     assert.deepEqual(['A', 'B', 'C', 'D'].map(cat), ['Sıcak Kahveler', 'Soğuk Kahveler', 'Diğer', 'Tatlılar']);
-    assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 1);
+    assert.equal(upgraded.prepare('PRAGMA user_version').get().user_version, 2);
 
     // baristanın sonradan "Kahve" demesi korunur: yeniden başlatınca tekrar adlandırılmaz
     upgraded.prepare("UPDATE menu_items SET category = 'Kahve' WHERE name = 'A'").run();
@@ -909,5 +909,29 @@ test('hız sınırı: aşırı sipariş 429, hatalı anahtar denemeleri 429 (do�
     assert.equal((await guess('test-token')).status, 429);
   } finally {
     await stop(limited.server);
+  }
+});
+
+test('eski menülere yeni soğuk kahveler bir kez eklenir, silinenler geri gelmez', () => {
+  const file = path.join(os.tmpdir(), 'kahve-soguk-' + process.pid + '.db');
+  try {
+    const first = openDb(file);
+    first.exec('PRAGMA user_version = 1');
+    first.exec('DELETE FROM menu_items');
+    first.exec("INSERT INTO menu_items (name, category, price) VALUES ('Iced Latte','Soğuk Kahveler',95)");
+    first.close();
+
+    const up = openDb(file);
+    const cold = () => up.prepare("SELECT name FROM menu_items WHERE category = 'Soğuk Kahveler'").all().map((r) => r.name);
+    assert.ok(cold().length >= 9);
+    assert.ok(cold().includes('Espresso Tonic') && cold().includes('Frappe'));
+    assert.equal(up.prepare("SELECT COUNT(*) AS n FROM menu_items WHERE name = 'Iced Latte'").get().n, 1);
+    up.prepare("DELETE FROM menu_items WHERE name = 'Frappe'").run();
+    up.close();
+    const again = openDb(file);
+    assert.equal(again.prepare("SELECT COUNT(*) AS n FROM menu_items WHERE name = 'Frappe'").get().n, 0);
+    again.close();
+  } finally {
+    for (const ext of ['', '-wal', '-shm']) fs.rmSync(file + ext, { force: true });
   }
 });

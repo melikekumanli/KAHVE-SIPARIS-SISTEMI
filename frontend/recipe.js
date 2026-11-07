@@ -8,6 +8,8 @@ window.Recipe = (function () {
     [/çikolata/, "#6b3a22"],
     [/karamel/, "#c98a3b"],
     [/dondurma/, "#f4e4b8"],
+    [/portakal|limon/, "#f0a33c"],
+    [/tonik|soda/, "#e3f0ec"],
     [/buz/, "#dcecf5"],
     [/(^|\s)su($|\s)/, "#cfe4ef"],
     [/çay/, "#b5632a"],

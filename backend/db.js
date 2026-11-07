@@ -58,6 +58,30 @@ const DEFAULT_ITEMS = [
   { name: 'Iced Latte', category: 'Soğuk Kahveler', price: 95, milk: 1, syrup: 1,
     description: 'Buz üzerinde soğuk süt ve espresso.',
     recipe: [R('Buz', 100, 'g'), R('Süt', 150), R('Espresso', 30)] },
+  { name: 'Iced Americano', category: 'Soğuk Kahveler', price: 80, milk: 0, syrup: 1,
+    description: 'Buz üzerinde soğuk su ve çift shot espresso: sert ve ferah.',
+    recipe: [R('Buz', 100, 'g'), R('Soğuk su', 150), R('Espresso', 60)] },
+  { name: 'Iced Mocha', category: 'Soğuk Kahveler', price: 105, milk: 1, syrup: 1,
+    description: 'Çikolata sosu, espresso ve soğuk süt buzla buluşuyor.',
+    recipe: [R('Çikolata sosu', 25), R('Buz', 90, 'g'), R('Süt', 150), R('Espresso', 30)] },
+  { name: 'Iced Karamel Macchiato', category: 'Soğuk Kahveler', price: 105, milk: 1, syrup: 1,
+    description: 'Soğuk süt, espresso ve üzerinde karamel sosu.',
+    recipe: [R('Buz', 90, 'g'), R('Süt', 150), R('Espresso', 30), R('Karamel sos', 15)] },
+  { name: 'Frappe', category: 'Soğuk Kahveler', price: 100, milk: 1, syrup: 1,
+    description: 'Buzla çırpılmış, köpüklü ve kremamsı soğuk kahve.',
+    recipe: [R('Buz', 120, 'g'), R('Süt', 120), R('Espresso', 60), R('Süt köpüğü', 30)] },
+  { name: 'Dalgona', category: 'Soğuk Kahveler', price: 95, milk: 1, syrup: 0,
+    description: 'Soğuk sütün üzerinde çırpılmış yoğun kahve köpüğü.',
+    recipe: [R('Buz', 80, 'g'), R('Süt', 200), R('Kahve köpüğü', 40)] },
+  { name: 'Nitro Cold Brew', category: 'Soğuk Kahveler', price: 100, milk: 0, syrup: 1,
+    description: 'Azotla zenginleştirilmiş, kadifemsi köpüklü soğuk demleme.',
+    recipe: [R('Buz', 60, 'g'), R('Cold brew kahve', 180), R('Soğuk krema köpüğü', 30)] },
+  { name: 'Espresso Tonic', category: 'Soğuk Kahveler', price: 95, milk: 0, syrup: 1,
+    description: 'Tonik ve buz üzerinde espresso: ferah, hafif acımsı ve gazlı.',
+    recipe: [R('Buz', 90, 'g'), R('Tonik', 120), R('Espresso', 30)] },
+  { name: 'Portakallı Cold Brew', category: 'Soğuk Kahveler', price: 100, milk: 0, syrup: 1,
+    description: 'Taze portakal suyu ve soğuk demleme kahvenin yaz kokteyli.',
+    recipe: [R('Buz', 80, 'g'), R('Portakal suyu', 60), R('Cold brew kahve', 120)] },
   { name: 'Çay', category: 'Diğer', price: 25, milk: 0, syrup: 0,
     description: 'Taze demlenmiş siyah çay.',
     recipe: [R('Demli çay', 100)] },
@@ -229,6 +253,16 @@ function openDb(file = process.env.DB_PATH || path.join(DATA_DIR, 'orders.db')) 
     db.prepare("UPDATE menu_items SET category = 'Sıcak Kahveler' WHERE category = 'Kahve'").run();
     db.prepare("UPDATE menu_items SET category = 'Soğuk Kahveler' WHERE category = 'Soğuk Kahve'").run();
     db.exec('PRAGMA user_version = 1');
+  }
+  // Soğuk kahve çeşitleri artırıldı: eski menülere yeni soğuk kahveler bir kez eklenir (aynı adlı ürün varsa dokunulmaz).
+  if (db.prepare('PRAGMA user_version').get().user_version < 2) {
+    const add = db.prepare(
+      'INSERT OR IGNORE INTO menu_items (name, category, price, allow_milk, allow_syrup, description, recipe) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+    DEFAULT_ITEMS.filter((i) => i.category === 'Soğuk Kahveler').forEach((i) =>
+      add.run(i.name, i.category, i.price, i.milk, i.syrup, i.description, JSON.stringify(i.recipe))
+    );
+    db.exec('PRAGMA user_version = 2');
   }
   return db;
 }
