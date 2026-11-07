@@ -17,7 +17,7 @@ Bir kafenin kendi bilgisayarında çalıştırıp **yerel ağdaki (Wi-Fi) telefo
 - **Süt seçenekleri:** Normal, Laktozsuz, Badem, Yulaf, Soya (ek ücretleriyle). **Şuruplar:** Vanilya, Karamel, Fındık, Çikolata, Hindistan cevizi; içecek başına en fazla 3. Fiyat canlı hesaplanır. Seçenekler yalnızca sorulması istenen ürünlerde (Latte, Cappuccino vb.) çıkar; Çay'a süt sorulmaz.
 - **Masa / paket:** müşteri masa numarasını hap biçimli düğmelerden seçer ya da "Paket" der. Masa sayısı panelden ayarlanır (0 yazılırsa seçim kapanır).
 - Sipariş sonrası **sipariş numarası** (her gün 1'den başlar) ve "Siparişlerim" bölümünde adım göstergesiyle canlı takip (Alındı → Hazırlanıyor → Hazır).
-- Telefon, tablet ve masaüstünde uyumlu; telefonda alt sepet çubuğu ve alttan açılan ürün penceresi. Girilen ismin hatırlanması, çift gönderim koruması. Geniş ekranda sağdaki sepet bardağı sabit durur, yalnızca menü kayar.
+- Telefon, tablet ve masaüstünde uyumlu; telefonda alt sepet çubuğu ve alttan açılan ürün penceresi. Girilen ismin hatırlanması, çift gönderim koruması. Geniş ekranda sağdaki sepet bardağı sabit durur, yalnızca menü kayar. Başlıktaki kahve damlaları sepet bardağına damlar; sepete ürün eklenince kısa bir espresso çekme animasyonu oynar (hareket azaltma tercihi açıksa kapalı).
 
 **Personel paneli (`/admin.html`)**
 - Yönetici anahtarıyla giriş.

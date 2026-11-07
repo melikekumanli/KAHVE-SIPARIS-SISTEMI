@@ -68,7 +68,7 @@
     };
   }
 
-  function dripSvg(width) {
+  function dripSvg(width, cupX) {
     // Ölçek: dar ekranda damlalar küçülür (CSS'teki --drip-space ile uyumlu)
     const s = width < 640 ? 0.62 : width < 1024 ? 0.82 : 1;
     const rand = seeded(11);
@@ -92,6 +92,7 @@
     let falls = "";
     let index = 0;
     for (let x = (36 + rand() * 50) * s; x < width + 10; x += (92 + rand() * 96) * s) {
+      if (cupX && Math.abs(x - cupX) < 80 * s) { x += 0; continue; }
       const y0 = wave(x);
       const r = (6 + rand() * 4.4) * s;                                    // damla ucu yarıçapı
       const length = Math.max(12 * s, Math.min((24 + rand() * 54) * s, maxBottom - y0 - r));
@@ -129,6 +130,23 @@
       index += 1;
     }
 
+    // Sepet bardağının tam üstünde, damlaların aktığı özel damla
+    if (cupX) {
+      const y0 = wave(cupX);
+      const r = 8.5 * s;
+      const length = Math.max(14 * s, maxBottom - y0 - r);
+      const neck = r * 0.52;
+      const shoulder = neck * 3.4;
+      const flare = 13 * s;
+      const cy = y0 + length;
+      shapes +=
+        `<g class="drip cup-drip" style="transform-origin:${n2(cupX)}px ${n2(y0)}px;animation-duration:5.2s">` +
+        `<path d="M${n2(cupX - shoulder)},${n2(y0 - 3)} Q${n2(cupX - neck)},${n2(y0 - 1)} ${n2(cupX - neck)},${n2(y0 + flare)} L${n2(cupX + neck)},${n2(y0 + flare)} Q${n2(cupX + neck)},${n2(y0 - 1)} ${n2(cupX + shoulder)},${n2(y0 - 3)} Z"/>` +
+        `<rect x="${n2(cupX - neck)}" y="${n2(y0)}" width="${n2(neck * 2)}" height="${n2(length)}" rx="${n2(neck)}"/>` +
+        `<circle class="cup-drip-tip" cx="${n2(cupX)}" cy="${n2(cy)}" r="${n2(r)}"/>` +
+        `</g>`;
+    }
+
     // "Gooey" filtre: bulanıklaştırıp eşikleyerek dalga ve damlaları sıvı gibi birbirine kaynaştırır
     return (
       `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" focusable="false">` +
@@ -153,9 +171,13 @@
         box.setAttribute("aria-hidden", "true");
         header.appendChild(box);
       }
-      if (box.dataset.width === String(width)) return;
-      box.dataset.width = String(width);
-      box.innerHTML = dripSvg(width);
+      const lid = document.querySelector(".cup-lid");
+      const lr = lid && lid.offsetParent ? lid.getBoundingClientRect() : null;
+      const cupX = lr && lr.width ? Math.round(lr.left + lr.width / 2 + window.scrollX) : 0;
+      const key = width + ":" + cupX;
+      if (box.dataset.width === key) return;
+      box.dataset.width = key;
+      box.innerHTML = dripSvg(width, cupX);
     });
   }
 

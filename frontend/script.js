@@ -345,6 +345,7 @@ function addToCart(line) {
   saveCart();
   renderCart();
   renderMenu();
+  document.dispatchEvent(new CustomEvent("cart:add"));
 }
 
 function changeQty(index, delta) {
